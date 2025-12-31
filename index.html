@@ -141,6 +141,57 @@
       color:#111827;
       border-color:#d1d5db;
     }
+
+    /* ---------- Tabs ---------- */
+    .tabs{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin: 10px 0 14px;
+      flex-wrap:wrap;
+    }
+    .tabbtn{
+      border:1px solid var(--line);
+      background:#0b1020;
+      color:var(--text);
+      font-weight:800;
+      border-radius:999px;
+      padding:8px 12px;
+      cursor:pointer;
+    }
+    .tabbtn.active{
+      background: rgba(34,197,94,.14);
+      border-color: rgba(34,197,94,.45);
+      color: #bbf7d0;
+    }
+    #appRoot.light .tabbtn{
+      background:#ffffff;
+      color:#111827;
+      border-color:#d1d5db;
+    }
+    #appRoot.light .tabbtn.active{
+      background: rgba(34,197,94,.12);
+      border-color: rgba(34,197,94,.35);
+      color:#14532d;
+    }
+
+    /* Inventory list */
+    .invList{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+    .invItem{
+      border:1px solid rgba(31,41,55,.8);
+      background:#0b1020;
+      border-radius:12px;
+      padding:10px;
+    }
+    #appRoot.light .invItem{ background:#ffffff; border-color:#e5e7eb; }
+    .invHead{
+      display:flex; justify-content:space-between; gap:10px; align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .invTitle{ font-weight:900; font-size:13px; }
+    .invMeta{ color:var(--muted); font-size:11px; line-height:1.3; }
+    .invActions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .invActions button{ padding:8px 10px; border-radius:10px; font-weight:800; }
   </style>
 </head>
 <body>
@@ -174,316 +225,362 @@
       </div>
     </div>
 
-    <div class="grid">
-      <div class="card">
-
-        <div class="advanced-only">
-          <div class="sec-title">
-            <h2 data-i18n="presetsTitle">Presets (optional)</h2>
-            <span class="pill" data-i18n="nonForcing">Non-forcing</span>
-          </div>
-
-          <div class="fields">
-            <div>
-              <label data-i18n="printerPreset">Printer preset</label>
-              <select id="printerPreset"></select>
-            </div>
-            <div class="row" style="align-self:end;">
-              <button id="applyPrinterBtn" class="secondary" type="button" data-i18n="applyPrinter">Apply printer</button>
-            </div>
-
-            <div>
-              <label data-i18n="filamentPreset">Filament preset</label>
-              <select id="filamentPreset"></select>
-            </div>
-            <div class="row" style="align-self:end;">
-              <button id="applyFilamentBtn" class="secondary" type="button" data-i18n="applyFilament">Apply filament</button>
-            </div>
-
-            <div>
-              <label data-i18n="platformPreset">Platform preset</label>
-              <select id="platformPreset"></select>
-            </div>
-            <div class="row" style="align-self:end;">
-              <button id="applyPlatformBtn" class="secondary" type="button" data-i18n="applyPlatform">Apply platform</button>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:10px; justify-content:space-between;">
-            <label class="toggle">
-              <input id="applyEmptyOnly" type="checkbox" checked />
-              <span data-i18n="applyEmptyOnly">Apply presets to <b>empty fields only</b></span>
-            </label>
-
-            <label class="toggle">
-              <input id="autoLoadDefaults" type="checkbox" checked />
-              <span data-i18n="autoLoadDefaults">Auto-load saved defaults</span>
-            </label>
-          </div>
-
-          <div class="note" data-i18n-html="printerPresetNote">
-            Printer preset can fill <b>power</b>, <b>price</b>, <b>lifetime hours</b>, and <b>maintenance</b>. You can always edit them.
-          </div>
-
-          <div class="btns">
-            <button id="saveDefaultsBtn" class="secondary" type="button" data-i18n="saveDefaults">Save defaults</button>
-            <button id="loadDefaultsBtn" class="secondary" type="button" data-i18n="loadDefaults">Load defaults</button>
-            <button id="clearDefaultsBtn" class="danger" type="button" data-i18n="clearDefaults">Clear saved defaults</button>
-          </div>
-
-          <div class="divider"></div>
-        </div>
-
-        <div class="sec-title">
-          <h2 data-i18n="jobInputs">Job inputs</h2>
-          <span class="pill" data-i18n="updatesAsYouType">Updates as you type</span>
-        </div>
-
-        <div class="fields">
-          <div>
-            <label data-i18n="quantity">Quantity</label>
-            <input id="quantity" type="number" min="1" step="1" data-i18n-placeholder="ph_quantity" placeholder="e.g., 10" />
-          </div>
-
-          <div class="row" style="align-self:end; justify-content:flex-start;">
-            <label class="toggle" style="margin:0;">
-              <input id="laborPerUnit" type="checkbox" />
-              <span data-i18n="laborPerUnit">Labor minutes are per unit</span>
-            </label>
-          </div>
-
-          <div>
-            <label data-i18n="bulkDiscountPct">Bulk discount (%) — applies to batch total</label>
-            <input id="bulkDiscountPct" type="number" min="0" step="0.1" data-i18n-placeholder="ph_bulkDiscountPct" placeholder="e.g., 5" />
-          </div>
-
-          <div>
-            <label data-i18n="printHours">Print time (hours) — per unit</label>
-            <input id="printHours" type="number" min="0" step="0.01" data-i18n-placeholder="ph_printHours" placeholder="From slicer (e.g., 6)" />
-          </div>
-
-          <div>
-            <label data-i18n="gramsUsed">Filament used (grams) — per unit</label>
-            <input id="gramsUsed" type="number" min="0" step="1" data-i18n-placeholder="ph_gramsUsed" placeholder="From slicer (e.g., 100)" />
-          </div>
-
-          <div>
-            <label data-i18n="spoolPrice">Spool price ($)</label>
-            <input id="spoolPrice" type="number" min="0" step="0.01" data-i18n-placeholder="ph_spoolPrice" placeholder="e.g., 20" />
-          </div>
-
-          <div>
-            <label data-i18n="spoolWeight">Spool weight (grams)</label>
-            <input id="spoolWeight" type="number" min="1" step="1" data-i18n-placeholder="ph_spoolWeight" placeholder="Usually 1000" />
-          </div>
-
-          <div>
-            <label data-i18n="wastePct">Waste factor (%)</label>
-            <input id="wastePct" type="number" min="0" step="0.1" data-i18n-placeholder="ph_wastePct" placeholder="e.g., 5" />
-          </div>
-
-          <div>
-            <label data-i18n="packagingCost">Packaging cost ($) — per unit</label>
-            <input id="packagingCost" type="number" min="0" step="0.01" data-i18n-placeholder="ph_packagingCost" placeholder="e.g., 0.75" />
-          </div>
-
-          <div>
-            <label data-i18n="consumablesCost">Consumables cost ($) — per unit</label>
-            <input id="consumablesCost" type="number" min="0" step="0.01" data-i18n-placeholder="ph_consumablesCost" placeholder="e.g., 0.50" />
-          </div>
-
-          <div class="advanced-only">
-            <label data-i18n="powerKW">Power draw (kW)</label>
-            <input id="powerKW" type="number" min="0" step="0.001" data-i18n-placeholder="ph_powerKW" placeholder="e.g., 0.115" />
-          </div>
-
-          <div class="advanced-only">
-            <label data-i18n="elecRate">Electricity rate ($/kWh)</label>
-            <input id="elecRate" type="number" min="0" step="0.001" data-i18n-placeholder="ph_elecRate" placeholder="e.g., 0.146" />
-          </div>
-
-          <div>
-            <label data-i18n="laborRate">Labor rate ($/hr)</label>
-            <input id="laborRate" type="number" min="0" step="0.01" data-i18n-placeholder="ph_laborRate" placeholder="e.g., 40" />
-          </div>
-
-          <div>
-            <label data-i18n="laborMin">Active labor (minutes)</label>
-            <input id="laborMin" type="number" min="0" step="1" data-i18n-placeholder="ph_laborMin" placeholder="e.g., 35" />
-          </div>
-
-          <div>
-            <label data-i18n="overheadPct">Overhead (%)</label>
-            <input id="overheadPct" type="number" min="0" step="0.1" data-i18n-placeholder="ph_overheadPct" placeholder="e.g., 10" />
-          </div>
-
-          <div>
-            <label data-i18n="profitPct">Profit margin (%)</label>
-            <input id="profitPct" type="number" min="0" step="0.1" data-i18n-placeholder="ph_profitPct" placeholder="e.g., 15" />
-          </div>
-
-          <div class="advanced-only">
-            <label data-i18n="minFee">Minimum job fee ($)</label>
-            <input id="minFee" type="number" min="0" step="0.01" data-i18n-placeholder="ph_minFee" placeholder="e.g., 25" />
-          </div>
-        </div>
-
-        <div class="note" data-i18n-html="batchNote">
-          Batch note: Quantity multiplies <b>print time, filament, packaging, consumables</b>. Labor can be total or per unit (checkbox).
-        </div>
-
-        <div class="note" data-i18n-html="bulkNote">
-          Bulk discount applies to the <b>batch total</b> (before platform fees). It will not drop below <b>your total cost</b>.
-        </div>
-
-        <div class="advanced-only">
-          <div class="divider"></div>
-
-          <div class="sec-title">
-            <h2 data-i18n="machineDepTitle">Machine depreciation</h2>
-            <span class="pill" data-i18n="addsMachineCost">Adds machine cost</span>
-          </div>
-
-          <div class="fields">
-            <div>
-              <label data-i18n="printerPrice">Printer price ($)</label>
-              <input id="printerPrice" type="number" min="0" step="0.01" data-i18n-placeholder="ph_printerPrice" placeholder="e.g., 2200" />
-            </div>
-            <div>
-              <label data-i18n="printerLifeHours">Printer lifetime (hours)</label>
-              <input id="printerLifeHours" type="number" min="0" step="1" data-i18n-placeholder="ph_printerLifeHours" placeholder="e.g., 7000" />
-            </div>
-            <div>
-              <label data-i18n="maintenancePerHr">Maintenance ($/hr) (optional)</label>
-              <input id="maintenancePerHr" type="number" min="0" step="0.01" data-i18n-placeholder="ph_maintenancePerHr" placeholder="e.g., 0.10" />
-            </div>
-            <div>
-              <label data-i18n="deprPerHr">Calculated depreciation ($/hr)</label>
-              <input id="deprPerHrDisplay" type="text" class="mono" disabled placeholder="—" />
-            </div>
-          </div>
-        </div>
-
-        <div class="advanced-only">
-          <div class="divider"></div>
-
-          <div class="sec-title">
-            <h2 data-i18n="platformFeesTitle">Platform fees (optional)</h2>
-            <span class="pill" data-i18n="grossUpSupported">Gross-up supported</span>
-          </div>
-
-          <div class="row" style="margin-bottom:8px;">
-            <label class="toggle">
-              <input id="includePlatformFees" type="checkbox" />
-              <span data-i18n="includePlatformFees">Include platform fees in final price</span>
-            </label>
-          </div>
-
-          <div class="fields">
-            <div>
-              <label data-i18n="platformFeePct">Fee %</label>
-              <input id="platformFeePct" type="number" min="0" step="0.01" data-i18n-placeholder="ph_platformFeePct" placeholder="e.g., 6.5" />
-            </div>
-            <div>
-              <label data-i18n="platformFixedFee">Fixed fee ($)</label>
-              <input id="platformFixedFee" type="number" min="0" step="0.01" data-i18n-placeholder="ph_platformFixedFee" placeholder="e.g., 0.25" />
-            </div>
-            <div>
-              <label data-i18n="platformListingFee">Listing fee ($)</label>
-              <input id="platformListingFee" type="number" min="0" step="0.01" data-i18n-placeholder="ph_platformListingFee" placeholder="e.g., 0.20" />
-            </div>
-            <div>
-              <label data-i18n="platformNotes">Platform notes</label>
-              <input id="platformNotes" type="text" data-i18n-placeholder="ph_platformNotes" placeholder="Optional" />
-            </div>
-          </div>
-        </div>
-
-        <div class="advanced-only">
-          <div class="divider"></div>
-
-          <div class="sec-title">
-            <h2 data-i18n="jobToolsTitle">Job tools</h2>
-            <span class="pill" data-i18n="saveExport">Save + export</span>
-          </div>
-
-          <div class="fields">
-            <div>
-              <label data-i18n="jobName">Job name (optional)</label>
-              <input id="jobName" type="text" data-i18n-placeholder="ph_jobName" placeholder="e.g., Dragon keychain batch" />
-            </div>
-            <div>
-              <label data-i18n="jobNotes">Notes (optional)</label>
-              <input id="jobNotes" type="text" data-i18n-placeholder="ph_jobNotes" placeholder="e.g., Black, 2 copies" />
-            </div>
-          </div>
-
-          <div class="btns">
-            <button id="saveJobBtn" type="button" data-i18n="saveJob">Save job to history</button>
-            <button id="exportJobsBtn" class="secondary" type="button" data-i18n="exportJobs">Export jobs JSON</button>
-            <button id="importJobsBtn" class="secondary" type="button" data-i18n="importJobs">Import jobs JSON</button>
-            <button id="clearJobsBtn" class="danger" type="button" data-i18n="clearJobs">Clear job history</button>
-          </div>
-        </div>
-
-        <div class="btns">
-          <button id="resetBtn" class="warn" type="button" data-i18n="resetAll">Reset (clear all)</button>
-          <button id="copyBtn" class="secondary" type="button" data-i18n="copyQuote">Copy quote</button>
-        </div>
-
-        <div class="note advanced-only">
-          <span data-i18n="grossUpNote">Platform fee uses gross-up:</span>
-          <span class="mono" style="color:#cbd5e1;">gross = (target + fixed + listing) / (1 - fee%)</span>
-        </div>
-
-        <div class="note" id="beginnerHint" data-i18n-html="beginnerTip">
-          Beginner tip: Use slicer values for <b>Print time</b> and <b>Filament grams</b>. Toggle Advanced later for electricity, margins, fees, and depreciation.
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="sec-title">
-          <h2 data-i18n="estimateTitle">Estimate</h2>
-          <span id="status" class="tiny" data-i18n="status_enterValues">Enter values to calculate</span>
-        </div>
-
-        <div class="breakdown" id="breakdown"></div>
-
-        <div class="total">
-          <div class="k" data-i18n="finalPriceTotal">Final Price (total)</div>
-          <div class="v" id="finalPrice">$0.00</div>
-        </div>
-
-        <div class="total" style="margin-top:10px; background: rgba(59,130,246,.10); border:1px solid rgba(59,130,246,.35);">
-          <div class="k" data-i18n="finalPriceUnit">Final Price (per unit)</div>
-          <div class="v" id="finalPricePerUnit">$0.00</div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="sec-title">
-          <h2 data-i18n="profitView">Profit view</h2>
-          <span class="pill" data-i18n="simple">Simple</span>
-        </div>
-
-        <div class="breakdown" id="profitBox"></div>
-
-        <div class="divider advanced-only"></div>
-
-        <div class="advanced-only">
-          <div class="sec-title">
-            <h2 data-i18n="jobHistoryTitle">Job history</h2>
-            <span class="pill" id="jobsCountPill">0 saved</span>
-          </div>
-
-          <div class="jobs" id="jobsList">
-            <div class="note" data-i18n="noSavedJobs">No saved jobs yet. Use “Save job to history”.</div>
-          </div>
-
-          <div class="tiny" data-i18n="storedLocally">Stored locally in your browser (localStorage).</div>
-        </div>
-      </div>
+    <!-- Tabs -->
+    <div class="tabs" role="tablist" aria-label="App tabs">
+      <button id="tabBtnCalc" class="tabbtn active" type="button" data-tab="calc" data-i18n="tab_calculator">Calculator</button>
+      <button id="tabBtnInv" class="tabbtn" type="button" data-tab="inv" data-i18n="tab_inventory">Inventory</button>
     </div>
+
+    <!-- Calculator Tab -->
+    <section id="tabCalc">
+      <div class="grid">
+        <div class="card">
+
+          <div class="advanced-only">
+            <div class="sec-title">
+              <h2 data-i18n="presetsTitle">Presets (optional)</h2>
+              <span class="pill" data-i18n="nonForcing">Non-forcing</span>
+            </div>
+
+            <div class="fields">
+              <div>
+                <label data-i18n="printerPreset">Printer preset</label>
+                <select id="printerPreset"></select>
+              </div>
+              <div class="row" style="align-self:end;">
+                <button id="applyPrinterBtn" class="secondary" type="button" data-i18n="applyPrinter">Apply printer</button>
+              </div>
+
+              <div>
+                <label data-i18n="filamentPreset">Filament preset</label>
+                <select id="filamentPreset"></select>
+              </div>
+              <div class="row" style="align-self:end;">
+                <button id="applyFilamentBtn" class="secondary" type="button" data-i18n="applyFilament">Apply filament</button>
+              </div>
+
+              <div>
+                <label data-i18n="platformPreset">Platform preset</label>
+                <select id="platformPreset"></select>
+              </div>
+              <div class="row" style="align-self:end;">
+                <button id="applyPlatformBtn" class="secondary" type="button" data-i18n="applyPlatform">Apply platform</button>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px; justify-content:space-between;">
+              <label class="toggle">
+                <input id="applyEmptyOnly" type="checkbox" checked />
+                <span data-i18n="applyEmptyOnly">Apply presets to <b>empty fields only</b></span>
+              </label>
+
+              <label class="toggle">
+                <input id="autoLoadDefaults" type="checkbox" checked />
+                <span data-i18n="autoLoadDefaults">Auto-load saved defaults</span>
+              </label>
+            </div>
+
+            <div class="note" data-i18n-html="printerPresetNote">
+              Printer preset can fill <b>power</b>, <b>price</b>, <b>lifetime hours</b>, and <b>maintenance</b>. You can always edit them.
+            </div>
+
+            <div class="btns">
+              <button id="saveDefaultsBtn" class="secondary" type="button" data-i18n="saveDefaults">Save defaults</button>
+              <button id="loadDefaultsBtn" class="secondary" type="button" data-i18n="loadDefaults">Load defaults</button>
+              <button id="clearDefaultsBtn" class="danger" type="button" data-i18n="clearDefaults">Clear saved defaults</button>
+            </div>
+
+            <div class="divider"></div>
+          </div>
+
+          <div class="sec-title">
+            <h2 data-i18n="jobInputs">Job inputs</h2>
+            <span class="pill" data-i18n="updatesAsYouType">Updates as you type</span>
+          </div>
+
+          <div class="fields">
+            <div>
+              <label data-i18n="quantity">Quantity</label>
+              <input id="quantity" type="number" min="1" step="1" data-i18n-placeholder="ph_quantity" placeholder="e.g., 10" />
+            </div>
+
+            <div class="row" style="align-self:end; justify-content:flex-start;">
+              <label class="toggle" style="margin:0;">
+                <input id="laborPerUnit" type="checkbox" />
+                <span data-i18n="laborPerUnit">Labor minutes are per unit</span>
+              </label>
+            </div>
+
+            <div>
+              <label data-i18n="bulkDiscountPct">Bulk discount (%) — applies to batch total</label>
+              <input id="bulkDiscountPct" type="number" min="0" step="0.1" data-i18n-placeholder="ph_bulkDiscountPct" placeholder="e.g., 5" />
+            </div>
+
+            <div>
+              <label data-i18n="printHours">Print time (hours) — per unit</label>
+              <input id="printHours" type="number" min="0" step="0.01" data-i18n-placeholder="ph_printHours" placeholder="From slicer (e.g., 6)" />
+            </div>
+
+            <div>
+              <label data-i18n="gramsUsed">Filament used (grams) — per unit</label>
+              <input id="gramsUsed" type="number" min="0" step="1" data-i18n-placeholder="ph_gramsUsed" placeholder="From slicer (e.g., 100)" />
+            </div>
+
+            <div>
+              <label data-i18n="spoolPrice">Spool price ($)</label>
+              <input id="spoolPrice" type="number" min="0" step="0.01" data-i18n-placeholder="ph_spoolPrice" placeholder="e.g., 20" />
+            </div>
+
+            <div>
+              <label data-i18n="spoolWeight">Spool weight (grams)</label>
+              <input id="spoolWeight" type="number" min="1" step="1" data-i18n-placeholder="ph_spoolWeight" placeholder="Usually 1000" />
+            </div>
+
+            <div>
+              <label data-i18n="wastePct">Waste factor (%)</label>
+              <input id="wastePct" type="number" min="0" step="0.1" data-i18n-placeholder="ph_wastePct" placeholder="e.g., 5" />
+            </div>
+
+            <div>
+              <label data-i18n="packagingCost">Packaging cost ($) — per unit</label>
+              <input id="packagingCost" type="number" min="0" step="0.01" data-i18n-placeholder="ph_packagingCost" placeholder="e.g., 0.75" />
+            </div>
+
+            <div>
+              <label data-i18n="consumablesCost">Consumables cost ($) — per unit</label>
+              <input id="consumablesCost" type="number" min="0" step="0.01" data-i18n-placeholder="ph_consumablesCost" placeholder="e.g., 0.50" />
+            </div>
+
+            <div class="advanced-only">
+              <label data-i18n="powerKW">Power draw (kW)</label>
+              <input id="powerKW" type="number" min="0" step="0.001" data-i18n-placeholder="ph_powerKW" placeholder="e.g., 0.115" />
+            </div>
+
+            <div class="advanced-only">
+              <label data-i18n="elecRate">Electricity rate ($/kWh)</label>
+              <input id="elecRate" type="number" min="0" step="0.001" data-i18n-placeholder="ph_elecRate" placeholder="e.g., 0.146" />
+            </div>
+
+            <div>
+              <label data-i18n="laborRate">Labor rate ($/hr)</label>
+              <input id="laborRate" type="number" min="0" step="0.01" data-i18n-placeholder="ph_laborRate" placeholder="e.g., 40" />
+            </div>
+
+            <div>
+              <label data-i18n="laborMin">Active labor (minutes)</label>
+              <input id="laborMin" type="number" min="0" step="1" data-i18n-placeholder="ph_laborMin" placeholder="e.g., 35" />
+            </div>
+
+            <div>
+              <label data-i18n="overheadPct">Overhead (%)</label>
+              <input id="overheadPct" type="number" min="0" step="0.1" data-i18n-placeholder="ph_overheadPct" placeholder="e.g., 10" />
+            </div>
+
+            <div>
+              <label data-i18n="profitPct">Profit margin (%)</label>
+              <input id="profitPct" type="number" min="0" step="0.1" data-i18n-placeholder="ph_profitPct" placeholder="e.g., 15" />
+            </div>
+
+            <div class="advanced-only">
+              <label data-i18n="minFee">Minimum job fee ($)</label>
+              <input id="minFee" type="number" min="0" step="0.01" data-i18n-placeholder="ph_minFee" placeholder="e.g., 25" />
+            </div>
+          </div>
+
+          <div class="note" data-i18n-html="batchNote">
+            Batch note: Quantity multiplies <b>print time, filament, packaging, consumables</b>. Labor can be total or per unit (checkbox).
+          </div>
+
+          <div class="note" data-i18n-html="bulkNote">
+            Bulk discount applies to the <b>batch total</b> (before platform fees). It will not drop below <b>your total cost</b>.
+          </div>
+
+          <div class="advanced-only">
+            <div class="divider"></div>
+
+            <div class="sec-title">
+              <h2 data-i18n="machineDepTitle">Machine depreciation</h2>
+              <span class="pill" data-i18n="addsMachineCost">Adds machine cost</span>
+            </div>
+
+            <div class="fields">
+              <div>
+                <label data-i18n="printerPrice">Printer price ($)</label>
+                <input id="printerPrice" type="number" min="0" step="0.01" data-i18n-placeholder="ph_printerPrice" placeholder="e.g., 2200" />
+              </div>
+              <div>
+                <label data-i18n="printerLifeHours">Printer lifetime (hours)</label>
+                <input id="printerLifeHours" type="number" min="0" step="1" data-i18n-placeholder="ph_printerLifeHours" placeholder="e.g., 7000" />
+              </div>
+              <div>
+                <label data-i18n="maintenancePerHr">Maintenance ($/hr) (optional)</label>
+                <input id="maintenancePerHr" type="number" min="0" step="0.01" data-i18n-placeholder="ph_maintenancePerHr" placeholder="e.g., 0.10" />
+              </div>
+              <div>
+                <label data-i18n="deprPerHr">Calculated depreciation ($/hr)</label>
+                <input id="deprPerHrDisplay" type="text" class="mono" disabled placeholder="—" />
+              </div>
+            </div>
+          </div>
+
+          <div class="advanced-only">
+            <div class="divider"></div>
+
+            <div class="sec-title">
+              <h2 data-i18n="platformFeesTitle">Platform fees (optional)</h2>
+              <span class="pill" data-i18n="grossUpSupported">Gross-up supported</span>
+            </div>
+
+            <div class="row" style="margin-bottom:8px;">
+              <label class="toggle">
+                <input id="includePlatformFees" type="checkbox" />
+                <span data-i18n="includePlatformFees">Include platform fees in final price</span>
+              </label>
+            </div>
+
+            <div class="fields">
+              <div>
+                <label data-i18n="platformFeePct">Fee %</label>
+                <input id="platformFeePct" type="number" min="0" step="0.01" data-i18n-placeholder="ph_platformFeePct" placeholder="e.g., 6.5" />
+              </div>
+              <div>
+                <label data-i18n="platformFixedFee">Fixed fee ($)</label>
+                <input id="platformFixedFee" type="number" min="0" step="0.01" data-i18n-placeholder="ph_platformFixedFee" placeholder="e.g., 0.25" />
+              </div>
+              <div>
+                <label data-i18n="platformListingFee">Listing fee ($)</label>
+                <input id="platformListingFee" type="number" min="0" step="0.01" data-i18n-placeholder="ph_platformListingFee" placeholder="e.g., 0.20" />
+              </div>
+              <div>
+                <label data-i18n="platformNotes">Platform notes</label>
+                <input id="platformNotes" type="text" data-i18n-placeholder="ph_platformNotes" placeholder="Optional" />
+              </div>
+            </div>
+          </div>
+
+          <div class="advanced-only">
+            <div class="divider"></div>
+
+            <div class="sec-title">
+              <h2 data-i18n="jobToolsTitle">Job tools</h2>
+              <span class="pill" data-i18n="saveExport">Save + export</span>
+            </div>
+
+            <div class="fields">
+              <div>
+                <label data-i18n="jobName">Job name (optional)</label>
+                <input id="jobName" type="text" data-i18n-placeholder="ph_jobName" placeholder="e.g., Dragon keychain batch" />
+              </div>
+              <div>
+                <label data-i18n="jobNotes">Notes (optional)</label>
+                <input id="jobNotes" type="text" data-i18n-placeholder="ph_jobNotes" placeholder="e.g., Black, 2 copies" />
+              </div>
+            </div>
+
+            <div class="btns">
+              <button id="saveJobBtn" type="button" data-i18n="saveJob">Save job to history</button>
+              <button id="exportJobsBtn" class="secondary" type="button" data-i18n="exportJobs">Export jobs JSON</button>
+              <button id="importJobsBtn" class="secondary" type="button" data-i18n="importJobs">Import jobs JSON</button>
+              <button id="clearJobsBtn" class="danger" type="button" data-i18n="clearJobs">Clear job history</button>
+            </div>
+          </div>
+
+          <div class="btns">
+            <button id="resetBtn" class="warn" type="button" data-i18n="resetAll">Reset (clear all)</button>
+            <button id="copyBtn" class="secondary" type="button" data-i18n="copyQuote">Copy quote</button>
+          </div>
+
+          <div class="note advanced-only">
+            <span data-i18n="grossUpNote">Platform fee uses gross-up:</span>
+            <span class="mono" style="color:#cbd5e1;">gross = (target + fixed + listing) / (1 - fee%)</span>
+          </div>
+
+          <div class="note" id="beginnerHint" data-i18n-html="beginnerTip">
+            Beginner tip: Use slicer values for <b>Print time</b> and <b>Filament grams</b>. Toggle Advanced later for electricity, margins, fees, and depreciation.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="sec-title">
+            <h2 data-i18n="estimateTitle">Estimate</h2>
+            <span id="status" class="tiny" data-i18n="status_enterValues">Enter values to calculate</span>
+          </div>
+
+          <div class="breakdown" id="breakdown"></div>
+
+          <div class="total">
+            <div class="k" data-i18n="finalPriceTotal">Final Price (total)</div>
+            <div class="v" id="finalPrice">$0.00</div>
+          </div>
+
+          <div class="total" style="margin-top:10px; background: rgba(59,130,246,.10); border:1px solid rgba(59,130,246,.35);">
+            <div class="k" data-i18n="finalPriceUnit">Final Price (per unit)</div>
+            <div class="v" id="finalPricePerUnit">$0.00</div>
+          </div>
+
+          <!-- Add to Inventory -->
+          <div class="btns" style="margin-top:12px;">
+            <button id="addToInventoryBtn" class="secondary" type="button" data-i18n="inv_addFromCalc">Add to Inventory</button>
+            <button id="openInventoryBtn" class="secondary" type="button" data-i18n="inv_openInventory">Open Inventory</button>
+          </div>
+          <div class="tiny" data-i18n="inv_hint">
+            Tip: Add items you make often, then adjust quantity as you print/sell.
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="sec-title">
+            <h2 data-i18n="profitView">Profit view</h2>
+            <span class="pill" data-i18n="simple">Simple</span>
+          </div>
+
+          <div class="breakdown" id="profitBox"></div>
+
+          <div class="divider advanced-only"></div>
+
+          <div class="advanced-only">
+            <div class="sec-title">
+              <h2 data-i18n="jobHistoryTitle">Job history</h2>
+              <span class="pill" id="jobsCountPill">0 saved</span>
+            </div>
+
+            <div class="jobs" id="jobsList">
+              <div class="note" data-i18n="noSavedJobs">No saved jobs yet. Use “Save job to history”.</div>
+            </div>
+
+            <div class="tiny" data-i18n="storedLocally">Stored locally in your browser (localStorage).</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Inventory Tab -->
+    <section id="tabInv" style="display:none;">
+      <div class="card">
+        <div class="sec-title">
+          <h2 data-i18n="inv_title">Inventory</h2>
+          <span class="pill" id="invCountPill">0 items</span>
+        </div>
+
+        <div class="row" style="align-items:flex-end;">
+          <div style="flex:1; min-width:220px;">
+            <label data-i18n="inv_searchLabel">Search</label>
+            <input id="invSearch" type="text" data-i18n-placeholder="inv_ph_search" placeholder="Search items..." />
+          </div>
+
+          <div class="row" style="gap:8px;">
+            <button id="invExportBtn" class="secondary" type="button" data-i18n="inv_export">Export</button>
+            <button id="invImportBtn" class="secondary" type="button" data-i18n="inv_import">Import</button>
+            <input id="invImportFile" type="file" accept="application/json" style="display:none;" />
+            <button id="invClearBtn" class="danger" type="button" data-i18n="inv_clear">Clear</button>
+          </div>
+        </div>
+
+        <div class="tiny" data-i18n="inv_storageNote">Inventory is saved locally in your browser (localStorage). Export a backup if needed.</div>
+
+        <div class="invList" id="invList"></div>
+      </div>
+    </section>
   </div>
 
   <script>
@@ -497,6 +594,36 @@
         languageLabel: "Language",
         lightMode: "Light Mode",
         beginnerMode: "Beginner Mode",
+
+        tab_calculator: "Calculator",
+        tab_inventory: "Inventory",
+
+        inv_title: "Inventory",
+        inv_searchLabel: "Search",
+        inv_ph_search: "Search items...",
+        inv_export: "Export",
+        inv_import: "Import",
+        inv_clear: "Clear",
+        inv_storageNote: "Inventory is saved locally in your browser (localStorage). Export a backup if needed.",
+        inv_addFromCalc: "Add to Inventory",
+        inv_openInventory: "Open Inventory",
+        inv_hint: "Tip: Add items you make often, then adjust quantity as you print/sell.",
+
+        inv_item_meta: (qty, unit, total) => `Qty: ${qty} • Unit: ${unit} • Total: ${total}`,
+        inv_btn_minus: "-1",
+        inv_btn_plus: "+1",
+        inv_btn_sold: "Sold",
+        inv_btn_delete: "Delete",
+        inv_btn_duplicate: "Duplicate",
+
+        inv_empty: "No inventory items yet. Add one from the Calculator.",
+        inv_confirm_delete: "Delete this item?",
+        inv_confirm_clear: "Clear ALL inventory items? This cannot be undone.",
+        inv_prompt_name: "Item name:",
+        inv_status_added: "Added to inventory ✅",
+        inv_status_imported: (n) => `Imported ${n} items ✅`,
+        inv_status_import_failed: "Import failed",
+        inv_status_cleared: "Inventory cleared",
 
         presetsTitle: "Presets (optional)",
         nonForcing: "Non-forcing",
@@ -728,6 +855,36 @@
         languageLabel: "Idioma",
         lightMode: "Modo Claro",
         beginnerMode: "Modo Principiante",
+
+        tab_calculator: "Calculadora",
+        tab_inventory: "Inventario",
+
+        inv_title: "Inventario",
+        inv_searchLabel: "Buscar",
+        inv_ph_search: "Buscar artículos...",
+        inv_export: "Exportar",
+        inv_import: "Importar",
+        inv_clear: "Borrar",
+        inv_storageNote: "El inventario se guarda localmente en tu navegador (localStorage). Exporta un respaldo si lo necesitas.",
+        inv_addFromCalc: "Agregar al inventario",
+        inv_openInventory: "Abrir inventario",
+        inv_hint: "Tip: Guarda artículos que haces seguido y ajusta cantidad cuando imprimes/vendes.",
+
+        inv_item_meta: (qty, unit, total) => `Cant: ${qty} • Unidad: ${unit} • Total: ${total}`,
+        inv_btn_minus: "-1",
+        inv_btn_plus: "+1",
+        inv_btn_sold: "Vendido",
+        inv_btn_delete: "Eliminar",
+        inv_btn_duplicate: "Duplicar",
+
+        inv_empty: "Aún no hay artículos. Agrega uno desde la Calculadora.",
+        inv_confirm_delete: "¿Eliminar este artículo?",
+        inv_confirm_clear: "¿Borrar TODO el inventario? Esto no se puede deshacer.",
+        inv_prompt_name: "Nombre del artículo:",
+        inv_status_added: "Agregado ✅",
+        inv_status_imported: (n) => `Importados ${n} artículos ✅`,
+        inv_status_import_failed: "Falló la importación",
+        inv_status_cleared: "Inventario borrado",
 
         presetsTitle: "Preajustes (opcional)",
         nonForcing: "No obliga valores",
@@ -1039,6 +1196,9 @@
     const LS_DEFAULTS_KEY = "calc_defaults_v3";
     const LS_JOBS_KEY = "calc_jobs_v3";
     const LS_SETTINGS_KEY = "calc_settings_v6";
+
+    // NEW: inventory key
+    const LS_INV_KEY = "calc_inventory_v1";
 
     // Inputs managed
     const inputIds = [
@@ -1545,6 +1705,181 @@
       setStatusKey(isLight ? "status_lightOn" : "status_darkOn");
     }
 
+    // ---------- Inventory ----------
+    function loadInv(){
+      const inv = loadJSON(LS_INV_KEY, []);
+      return Array.isArray(inv) ? inv : [];
+    }
+    function saveInv(inv){
+      saveJSON(LS_INV_KEY, inv);
+      renderInventory();
+    }
+    function invId(){
+      return "inv_" + Math.random().toString(36).slice(2, 8) + "_" + Date.now().toString(36);
+    }
+    function invCountText(n){
+      const lang = currentLang();
+      if (lang === "es") return `${n} artículos`;
+      return `${n} items`;
+    }
+
+    function renderInventory(){
+      const listEl = $("invList");
+      const pill = $("invCountPill");
+      if (!listEl || !pill) return;
+
+      const q = ($("invSearch")?.value || "").toLowerCase().trim();
+      const inv = loadInv();
+
+      pill.textContent = invCountText(inv.length);
+
+      const filtered = inv.filter(it => {
+        if (!q) return true;
+        const name = (it.name || "").toLowerCase();
+        const notes = (it.notes || "").toLowerCase();
+        return name.includes(q) || notes.includes(q);
+      });
+
+      if (!filtered.length){
+        listEl.innerHTML = `<div class="note">${t("inv_empty")}</div>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.slice().reverse().map(item => {
+        const qty = Number.isFinite(item.qty) ? item.qty : 0;
+        const unit = money(item.pricePerUnit || 0);
+        const total = money(item.priceTotal || 0);
+        const meta = t("inv_item_meta")(qty, unit, total);
+        const created = item.createdAt ? formatDate(item.createdAt) : "";
+        return `
+          <div class="invItem">
+            <div class="invHead">
+              <div>
+                <div class="invTitle">${escapeHTML(item.name || "—")}</div>
+                <div class="invMeta">${escapeHTML(meta)}${created ? "<br/>" + escapeHTML(created) : ""}</div>
+                ${item.notes ? `<div class="invMeta" style="margin-top:6px;">${escapeHTML(item.notes)}</div>` : ""}
+              </div>
+              <div class="invActions">
+                <button class="secondary" type="button" onclick="window.__invAdjust('${item.id}', -1)">${escapeHTML(t("inv_btn_minus"))}</button>
+                <button class="secondary" type="button" onclick="window.__invAdjust('${item.id}', +1)">${escapeHTML(t("inv_btn_plus"))}</button>
+                <button class="warn" type="button" onclick="window.__invAdjust('${item.id}', -1)">${escapeHTML(t("inv_btn_sold"))}</button>
+                <button class="secondary" type="button" onclick="window.__invDuplicate('${item.id}')">${escapeHTML(t("inv_btn_duplicate"))}</button>
+                <button class="danger" type="button" onclick="window.__invDelete('${item.id}')">${escapeHTML(t("inv_btn_delete"))}</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    window.__invAdjust = (id, delta) => {
+      const inv = loadInv();
+      const it = inv.find(x => x.id === id);
+      if (!it) return;
+      const next = (Number.isFinite(it.qty) ? it.qty : 0) + delta;
+      it.qty = Math.max(0, next);
+      saveInv(inv);
+    };
+
+    window.__invDelete = (id) => {
+      if (!confirm(t("inv_confirm_delete"))) return;
+      const inv = loadInv().filter(x => x.id !== id);
+      saveInv(inv);
+    };
+
+    window.__invDuplicate = (id) => {
+      const inv = loadInv();
+      const it = inv.find(x => x.id === id);
+      if (!it) return;
+      const copy = { ...it, id: invId(), createdAt: new Date().toISOString() };
+      inv.push(copy);
+      saveInv(inv);
+    };
+
+    function exportInventory(){
+      const inv = loadInv();
+      const payload = { exportedAt: new Date().toISOString(), version: 1, inventory: inv };
+      const text = JSON.stringify(payload, null, 2);
+      const blob = new Blob([text], { type:"application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "inventory.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    async function importInventoryFromFile(file){
+      try{
+        const txt = await file.text();
+        const obj = JSON.parse(txt);
+        const incoming = Array.isArray(obj.inventory) ? obj.inventory : (Array.isArray(obj) ? obj : null);
+        if (!incoming) throw new Error("Invalid format");
+        const cleaned = incoming.filter(Boolean).map(it => ({
+          id: it.id || invId(),
+          name: it.name || "—",
+          qty: Number.isFinite(it.qty) ? it.qty : 0,
+          pricePerUnit: Number(it.pricePerUnit || 0),
+          priceTotal: Number(it.priceTotal || 0),
+          createdAt: it.createdAt || new Date().toISOString(),
+          notes: it.notes || ""
+        }));
+        saveInv(cleaned);
+        $("status").textContent = t("inv_status_imported")(cleaned.length);
+        $("status").dataset.i18nStatusKey = "";
+      }catch(e){
+        setStatusKey("inv_status_import_failed");
+      }
+    }
+
+    function clearInventory(){
+      if (!confirm(t("inv_confirm_clear"))) return;
+      localStorage.removeItem(LS_INV_KEY);
+      renderInventory();
+      setStatusKey("inv_status_cleared");
+    }
+
+    function addCurrentCalcToInventory(){
+      const r = calc();
+      if (!r){ alert(t("alert_enterValuesFirst")); return; }
+
+      // Prefer jobName if available
+      const suggested = ($("jobName")?.value || "").trim();
+      const name = prompt(t("inv_prompt_name"), suggested || "");
+      if (!name) return;
+
+      const notes = ($("jobNotes")?.value || "").trim();
+      const inv = loadInv();
+      inv.push({
+        id: invId(),
+        createdAt: new Date().toISOString(),
+        name: name.trim(),
+        notes,
+        qty: r.qty || 1,
+        priceTotal: r.final || 0,
+        pricePerUnit: r.finalPerUnit || 0
+      });
+      saveInv(inv);
+      $("status").textContent = t("inv_status_added");
+      $("status").dataset.i18nStatusKey = "";
+    }
+
+    // ---------- Tabs ----------
+    function showTab(which){
+      const tabCalc = $("tabCalc");
+      const tabInv = $("tabInv");
+      const bCalc = $("tabBtnCalc");
+      const bInv = $("tabBtnInv");
+      const isInv = which === "inv";
+
+      if (tabCalc) tabCalc.style.display = isInv ? "none" : "";
+      if (tabInv) tabInv.style.display = isInv ? "" : "none";
+
+      bCalc?.classList.toggle("active", !isInv);
+      bInv?.classList.toggle("active", isInv);
+
+      if (isInv) renderInventory();
+    }
+
     function applyI18nToDOM(){
       const lang = currentLang();
       document.documentElement.lang = lang;
@@ -1572,11 +1907,31 @@
 
       refreshAllPresetSelects();
       renderJobs();
+      renderInventory();
       calc();
     }
 
+    // ---------------- init wiring ----------------
     function init(){
       refreshAllPresetSelects();
+
+      // Tabs
+      $("tabBtnCalc")?.addEventListener("click", () => showTab("calc"));
+      $("tabBtnInv")?.addEventListener("click", () => showTab("inv"));
+      $("openInventoryBtn")?.addEventListener("click", () => showTab("inv"));
+
+      // Inventory events
+      $("invSearch")?.addEventListener("input", renderInventory);
+      $("invExportBtn")?.addEventListener("click", exportInventory);
+      $("invImportBtn")?.addEventListener("click", () => $("invImportFile")?.click());
+      $("invImportFile")?.addEventListener("change", async (e) => {
+        const f = e.target.files?.[0];
+        if (!f) return;
+        await importInventoryFromFile(f);
+        e.target.value = "";
+      });
+      $("invClearBtn")?.addEventListener("click", clearInventory);
+      $("addToInventoryBtn")?.addEventListener("click", addCurrentCalcToInventory);
 
       // Apply buttons
       $("applyPrinterBtn")?.addEventListener("click", () => {
@@ -1698,6 +2053,7 @@
 
       renderEmpty();
       renderJobs();
+      renderInventory();
 
       const autoLoad = (typeof settings.autoLoadDefaults === "boolean") ? settings.autoLoadDefaults : true;
       if ($("autoLoadDefaults")) $("autoLoadDefaults").checked = autoLoad;
@@ -1712,6 +2068,9 @@
         const saved = loadJSON(LS_DEFAULTS_KEY, null);
         if (saved) setState(saved);
       }
+
+      // Default tab
+      showTab("calc");
     }
 
     init();
