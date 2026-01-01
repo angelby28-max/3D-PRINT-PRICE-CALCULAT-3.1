@@ -698,11 +698,12 @@ function printQR(){
 
   if (!name || !priceRaw){
     alert((currentLang()==="es")
-      ? "Primero genera un QR (nombre + precio)."
-      : "Generate a QR first (enter name + price)."
+      ? "Primero genera un QR (nombre y precio)."
+      : "Generate a QR first (name and price)."
     );
     return;
   }
+
   if (!qrBox || !qrBox.innerHTML.trim()){
     alert((currentLang()==="es")
       ? "Primero genera el código QR."
@@ -736,10 +737,6 @@ function printQR(){
   const priceNum = Number(priceRaw);
   const priceText = Number.isFinite(priceNum) ? priceNum.toFixed(2) : priceRaw;
 
-  // Try popup/tab first (works on desktop). If blocked (common on phone/PWA), fall back to same-tab.
-  let w = window.open("", "_blank");
-  const fallbackSameTab = !w;
-
   const title = t("qr_print_title");
   const backLbl = t("qr_back");
   const printLbl = t("qr_print");
@@ -752,89 +749,40 @@ function printQR(){
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${esc(title)}</title>
   <style>
-    :root{
-      --label-w: 2.625in;
-      --label-h: 1in;
-      --pad: 0.06in;
-      --qr: 0.85in;
-    }
     body{ margin:0; font-family: Arial, sans-serif; padding:14px; }
-    .topbar{
-      display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;
-    }
-    button{
-      border:1px solid #ccc; background:#fff; padding:10px 12px; border-radius:10px;
-      font-weight:800; cursor:pointer;
-    }
+    .topbar{ display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+    button{ border:1px solid #ccc; background:#fff; padding:10px 12px; border-radius:10px; font-weight:800; cursor:pointer; }
     .hint{ font-size:13px; color:#444; }
-    .sheet{
-      border:1px dashed #bbb; padding:12px; border-radius:12px; display:inline-block;
-      background:#fff;
-    }
-    .label{
-      width: var(--label-w);
-      height: var(--label-h);
-      box-sizing: border-box;
-      padding: var(--pad);
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.08in;
-      align-items: center;
-      border:1px solid #eee;
-    }
-    .name{ font-size: 11pt; font-weight: 700; line-height: 1.05; max-height: 2.2em; overflow: hidden; }
-    .price{ font-size: 14pt; font-weight: 900; margin-top: 0.04in; }
-    img{ width: var(--qr); height: var(--qr); display:block; }
-    @media print{
-      body{ padding:0; }
-      .topbar{ display:none; }
-      .sheet{ border:0; padding:0; }
-      @page{ size: var(--label-w) var(--label-h); margin: 0; }
-    }
+    @media print{ .topbar{ display:none; } }
   </style>
 </head>
 <body>
   <div class="topbar">
     <button onclick="goBackSafe()">${esc(backLbl)}</button>
-
     <button onclick="window.print()">${esc(printLbl)}</button>
     <div class="hint">${esc(hint)}</div>
   </div>
 
-  <div class="sheet">
-    <div class="label">
-      <div>
-        <div class="name">${esc(name)}</div>
-        <div class="price">$${esc(priceText)}</div>
-      </div>
-      <img src="${dataUrl}" alt="QR">
-    </div>
-  </div>
+  <img src="${dataUrl}" width="280" style="display:block;margin-bottom:10px;">
+  <div><strong>${esc(name)}</strong></div>
+  <div>$${esc(priceText)}</div>
 
   <script>
-  // Don’t auto-print; mobile browsers often block it.
-
-  function goBackSafe(){
-    // If there is browser history, go back
-    if (window.history.length > 1){
-      window.history.back();
-      return;
+    function goBackSafe(){
+      if (window.history.length > 1){
+        window.history.back();
+        return;
+      }
+      window.location.href = "${appBaseURL()}";
     }
-
-    // If there is NO history (common in iPhone Home Screen apps),
-    // go back to the main app URL
-    window.location.href = "${appBaseURL()}";
-  }
-</script>
-
+  </script>
 </body>
 </html>`;
 
-  if (fallbackSameTab){
-    // Popup blocked: replace current page with printable preview
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    window.location.href = url;
+  let w = window.open("", "_blank");
+  if (!w){
+    const blob = new Blob([html], { type:"text/html" });
+    window.location.href = URL.createObjectURL(blob);
     return;
   }
 
@@ -842,6 +790,7 @@ function printQR(){
   w.document.write(html);
   w.document.close();
 }
+
 
     function makeQR(){
   const name = ($("qrItemName")?.value || "").trim();
