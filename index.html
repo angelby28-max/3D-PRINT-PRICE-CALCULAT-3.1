@@ -697,11 +697,17 @@ function printQR(){
   const qrBox = $("qrPreview");
 
   if (!name || !priceRaw){
-    alert("Generate a QR first (enter name + price).");
+    alert((currentLang()==="es")
+      ? "Primero genera un QR (nombre + precio)."
+      : "Generate a QR first (enter name + price)."
+    );
     return;
   }
   if (!qrBox || !qrBox.innerHTML.trim()){
-    alert("Generate the QR code first.");
+    alert((currentLang()==="es")
+      ? "Primero genera el código QR."
+      : "Generate the QR code first."
+    );
     return;
   }
 
@@ -713,7 +719,10 @@ function printQR(){
   else if (qrCanvas) dataUrl = qrCanvas.toDataURL("image/png");
 
   if (!dataUrl){
-    alert("QR image not found. Click Generate QR Code first.");
+    alert((currentLang()==="es")
+      ? "No se encontró la imagen del QR. Presiona Generar QR primero."
+      : "QR image not found. Click Generate QR Code first."
+    );
     return;
   }
 
@@ -727,18 +736,21 @@ function printQR(){
   const priceNum = Number(priceRaw);
   const priceText = Number.isFinite(priceNum) ? priceNum.toFixed(2) : priceRaw;
 
-  const w = window.open("", "_blank", "width=600,height=700");
-  if (!w){
-    alert("Popup blocked. Allow popups for this site, then try again.");
-    return;
-  }
+  // Try popup/tab first (works on desktop). If blocked (common on phone/PWA), fall back to same-tab.
+  let w = window.open("", "_blank");
+  const fallbackSameTab = !w;
 
-  w.document.open();
-  w.document.write(`<!doctype html>
-<html>
+  const title = t("qr_print_title");
+  const backLbl = t("qr_back");
+  const printLbl = t("qr_print");
+  const hint = t("qr_print_hint");
+
+  const html = `<!doctype html>
+<html lang="${esc(currentLang())}">
 <head>
   <meta charset="utf-8">
-  <title>Print QR</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${esc(title)}</title>
   <style>
     :root{
       --label-w: 2.625in;
@@ -746,9 +758,19 @@ function printQR(){
       --pad: 0.06in;
       --qr: 0.85in;
     }
-    @page{ size: var(--label-w) var(--label-h); margin: 0; }
-    html,body{ height:100%; }
-    body{ margin:0; font-family: Arial, sans-serif; }
+    body{ margin:0; font-family: Arial, sans-serif; padding:14px; }
+    .topbar{
+      display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;
+    }
+    button{
+      border:1px solid #ccc; background:#fff; padding:10px 12px; border-radius:10px;
+      font-weight:800; cursor:pointer;
+    }
+    .hint{ font-size:13px; color:#444; }
+    .sheet{
+      border:1px dashed #bbb; padding:12px; border-radius:12px; display:inline-block;
+      background:#fff;
+    }
     .label{
       width: var(--label-w);
       height: var(--label-h);
@@ -758,26 +780,67 @@ function printQR(){
       grid-template-columns: 1fr auto;
       gap: 0.08in;
       align-items: center;
+      border:1px solid #eee;
     }
     .name{ font-size: 11pt; font-weight: 700; line-height: 1.05; max-height: 2.2em; overflow: hidden; }
     .price{ font-size: 14pt; font-weight: 900; margin-top: 0.04in; }
     img{ width: var(--qr); height: var(--qr); display:block; }
+    @media print{
+      body{ padding:0; }
+      .topbar{ display:none; }
+      .sheet{ border:0; padding:0; }
+      @page{ size: var(--label-w) var(--label-h); margin: 0; }
+    }
   </style>
 </head>
 <body>
-  <div class="label">
-    <div>
-      <div class="name">${esc(name)}</div>
-      <div class="price">$${esc(priceText)}</div>
-    </div>
-    <img src="${dataUrl}" alt="QR">
-  </div>
-  
-</body>
-</html>`);
-  w.document.close();
-    w.onload = () => { w.print(); setTimeout(()=>w.close(), 250); };
+  <div class="topbar">
+    <button onclick="goBackSafe()">${esc(backLbl)}</button>
 
+    <button onclick="window.print()">${esc(printLbl)}</button>
+    <div class="hint">${esc(hint)}</div>
+  </div>
+
+  <div class="sheet">
+    <div class="label">
+      <div>
+        <div class="name">${esc(name)}</div>
+        <div class="price">$${esc(priceText)}</div>
+      </div>
+      <img src="${dataUrl}" alt="QR">
+    </div>
+  </div>
+
+  <script>
+  // Don’t auto-print; mobile browsers often block it.
+
+  function goBackSafe(){
+    // If there is browser history, go back
+    if (window.history.length > 1){
+      window.history.back();
+      return;
+    }
+
+    // If there is NO history (common in iPhone Home Screen apps),
+    // go back to the main app URL
+    window.location.href = "${appBaseURL()}";
+  }
+</script>
+
+</body>
+</html>`;
+
+  if (fallbackSameTab){
+    // Popup blocked: replace current page with printable preview
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    window.location.href = url;
+    return;
+  }
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
 }
 
     function makeQR(){
@@ -820,6 +883,11 @@ function printQR(){
     // ---------- i18n ----------
     const I18N = {
       en: {
+        qr_print_title: "Print QR",
+qr_back: "← Back",
+qr_print: "Print",
+qr_print_hint: "On iPhone: if Print doesn’t appear, open in Safari and use Share → Print.",
+
         appTitle: "3D Print Price Calculator",
         subTitle: "Beginner Mode keeps it simple. Light Mode gives a brighter look. Both settings are remembered.",
         languageLabel: "Language",
@@ -1081,6 +1149,11 @@ function printQR(){
         preset_typical: "Typical card processing"
       },
       es: {
+        qr_print_title: "Imprimir QR",
+qr_back: "← Volver",
+qr_print: "Imprimir",
+qr_print_hint: "En iPhone: si no aparece Imprimir, abre en Safari y usa Compartir → Imprimir.",
+
         appTitle: "Calculadora de Precio para Impresión 3D",
         subTitle: "Modo Principiante lo mantiene simple. Modo Claro da una apariencia más brillante. Se recuerdan tus ajustes.",
         languageLabel: "Idioma",
