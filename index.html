@@ -272,6 +272,8 @@ body.light{
     <div class="btns">
       <button id="btnMakeQR" type="button">Generate QR Code</button>
       <button id="btnClearQR" class="secondary" type="button">Clear</button>
+      <button id="btnPrintQR" class="secondary" type="button">Print QR</button>
+
     </div>
 
     <div class="row" style="gap:14px; align-items:flex-start; margin-top:10px;">
@@ -688,6 +690,94 @@ function makeQRFromCalculator(){
 
   // Scroll to QR so you can see it
   $("qrItemCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function printQR(){
+  const name = ($("qrItemName")?.value || "").trim();
+  const priceRaw = ($("qrItemPrice")?.value || "").trim();
+  const qrBox = $("qrPreview");
+
+  if (!name || !priceRaw){
+    alert("Generate a QR first (enter name + price).");
+    return;
+  }
+  if (!qrBox || !qrBox.innerHTML.trim()){
+    alert("Generate the QR code first.");
+    return;
+  }
+
+  const qrImg = qrBox.querySelector("img");
+  const qrCanvas = qrBox.querySelector("canvas");
+
+  let dataUrl = "";
+  if (qrImg && qrImg.src) dataUrl = qrImg.src;
+  else if (qrCanvas) dataUrl = qrCanvas.toDataURL("image/png");
+
+  if (!dataUrl){
+    alert("QR image not found. Click Generate QR Code first.");
+    return;
+  }
+
+  const esc = (s) => String(s)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+
+  const priceNum = Number(priceRaw);
+  const priceText = Number.isFinite(priceNum) ? priceNum.toFixed(2) : priceRaw;
+
+  const w = window.open("", "_blank", "width=600,height=700");
+  if (!w){
+    alert("Popup blocked. Allow popups for this site, then try again.");
+    return;
+  }
+
+  w.document.open();
+  w.document.write(`<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Print QR</title>
+  <style>
+    :root{
+      --label-w: 2.625in;
+      --label-h: 1in;
+      --pad: 0.06in;
+      --qr: 0.85in;
+    }
+    @page{ size: var(--label-w) var(--label-h); margin: 0; }
+    html,body{ height:100%; }
+    body{ margin:0; font-family: Arial, sans-serif; }
+    .label{
+      width: var(--label-w);
+      height: var(--label-h);
+      box-sizing: border-box;
+      padding: var(--pad);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.08in;
+      align-items: center;
+    }
+    .name{ font-size: 11pt; font-weight: 700; line-height: 1.05; max-height: 2.2em; overflow: hidden; }
+    .price{ font-size: 14pt; font-weight: 900; margin-top: 0.04in; }
+    img{ width: var(--qr); height: var(--qr); display:block; }
+  </style>
+</head>
+<body>
+  <div class="label">
+    <div>
+      <div class="name">${esc(name)}</div>
+      <div class="price">$${esc(priceText)}</div>
+    </div>
+    <img src="${dataUrl}" alt="QR">
+  </div>
+  <script>
+    window.onload = () => { window.print(); setTimeout(()=>window.close(), 250); };
+  </script>
+</body>
+</html>`);
+  w.document.close();
 }
 
     function makeQR(){
@@ -2070,7 +2160,9 @@ function makeQRFromCalculator(){
       // ✅ QR Item buttons
 $("btnMakeQR")?.addEventListener("click", makeQR);
 $("btnClearQR")?.addEventListener("click", clearQRUI);
-      $("makeQRFromCalcBtn")?.addEventListener("click", makeQRFromCalculator);
+    $("btnPrintQR")?.addEventListener("click", printQR);
+
+        $("makeQRFromCalcBtn")?.addEventListener("click", makeQRFromCalculator);
 
 clearQRUI();
 
