@@ -669,6 +669,7 @@ function appBaseURL(){
     $("qrItemName")?.focus();
     return;
   }
+
   if (!priceRaw || Number(priceRaw) <= 0){
     alert("Please enter a valid price.");
     $("qrItemPrice")?.focus();
@@ -676,32 +677,25 @@ function appBaseURL(){
   }
 
   const price = Number(priceRaw).toFixed(2);
-  const url = new URL(appBaseURL());
-url.searchParams.set("item", name);
-url.searchParams.set("price", price);
-const text = url.toString();
 
+  const url = new URL(appBaseURL());
+
+  url.searchParams.set("item", name);
+  url.searchParams.set("price", price);
 
   const box = $("qrPreview");
-  const hint = $("qrHint");
-  const out  = $("qrTextOut");
-  if (!box) return;
-
-  // Clear old QR
   box.innerHTML = "";
 
-  // Create new QR
   new QRCode(box, {
-    text,
+    text: url.toString(),
     width: 200,
     height: 200,
     correctLevel: QRCode.CorrectLevel.M
   });
 
-  if (hint) hint.textContent = "Scan the QR with your phone camera to confirm it shows the item + price.";
-  if (out) out.textContent = "QR content: " + text;
+  $("qrHint").textContent = "Scan the QR to view item and price.";
+  $("qrTextOut").textContent = url.toString();
 }
-
 
     // ---------- i18n ----------
     const I18N = {
