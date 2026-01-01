@@ -742,6 +742,10 @@ function printQR(){
   const printLbl = t("qr_print");
   const hint = t("qr_print_hint");
 
+  // Back logic WITHOUT a <script> tag:
+  const base = appBaseURL();
+  const backOnClick = `if(history.length>1){history.back();}else{location.href='${esc(base)}';}`;
+
   const html = `<!doctype html>
 <html lang="${esc(currentLang())}">
 <head>
@@ -758,7 +762,7 @@ function printQR(){
 </head>
 <body>
   <div class="topbar">
-    <button onclick="goBackSafe()">${esc(backLbl)}</button>
+    <button onclick="${backOnClick}">${esc(backLbl)}</button>
     <button onclick="window.print()">${esc(printLbl)}</button>
     <div class="hint">${esc(hint)}</div>
   </div>
@@ -766,16 +770,6 @@ function printQR(){
   <img src="${dataUrl}" width="280" style="display:block;margin-bottom:10px;">
   <div><strong>${esc(name)}</strong></div>
   <div>$${esc(priceText)}</div>
-
-  <script>
-    function goBackSafe(){
-      if (window.history.length > 1){
-        window.history.back();
-        return;
-      }
-      window.location.href = "${appBaseURL()}";
-    }
-  </script>
 </body>
 </html>`;
 
@@ -790,7 +784,6 @@ function printQR(){
   w.document.write(html);
   w.document.close();
 }
-
 
     function makeQR(){
   const name = ($("qrItemName")?.value || "").trim();
