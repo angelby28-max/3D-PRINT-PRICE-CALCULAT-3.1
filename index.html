@@ -641,6 +641,56 @@ body.light{
 
   <script>
     const $ = (id) => document.getElementById(id);
+    // ================================
+// ✅ QR ITEM (Step 2: button wiring)
+// ================================
+function clearQRUI(){
+  const box = $("qrPreview");
+  const hint = $("qrHint");
+  const out  = $("qrTextOut");
+  if (box) box.innerHTML = "";
+  if (hint) hint.textContent = "Enter an item name + price, then generate a QR.";
+  if (out) out.textContent = "";
+}
+
+function makeQR(){
+  const name = ($("qrItemName")?.value || "").trim();
+  const priceRaw = ($("qrItemPrice")?.value || "").trim();
+
+  if (!name){
+    alert("Please enter an item name.");
+    $("qrItemName")?.focus();
+    return;
+  }
+  if (!priceRaw || Number(priceRaw) <= 0){
+    alert("Please enter a valid price.");
+    $("qrItemPrice")?.focus();
+    return;
+  }
+
+  const price = Number(priceRaw).toFixed(2);
+  const text = `${name} - $${price}`;
+
+  const box = $("qrPreview");
+  const hint = $("qrHint");
+  const out  = $("qrTextOut");
+  if (!box) return;
+
+  // Clear old QR
+  box.innerHTML = "";
+
+  // Create new QR
+  new QRCode(box, {
+    text,
+    width: 200,
+    height: 200,
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  if (hint) hint.textContent = "Scan the QR with your phone camera to confirm it shows the item + price.";
+  if (out) out.textContent = "QR content: " + text;
+}
+
 
     // ---------- i18n ----------
     const I18N = {
@@ -1982,6 +2032,11 @@ body.light{
       $("tabBtnCalc")?.addEventListener("click", () => showTab("calc"));
       $("tabBtnInv")?.addEventListener("click", () => showTab("inv"));
       $("openInventoryBtn")?.addEventListener("click", () => showTab("inv"));
+      // ✅ QR Item buttons
+$("btnMakeQR")?.addEventListener("click", makeQR);
+$("btnClearQR")?.addEventListener("click", clearQRUI);
+clearQRUI();
+
 
       // Inventory events
       $("invSearch")?.addEventListener("input", renderInventory);
