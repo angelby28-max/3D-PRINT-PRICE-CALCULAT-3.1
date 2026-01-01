@@ -14,6 +14,10 @@
   background:#0b1220; /* simple fallback */
   color:var(--text);
 }
+body.light{
+  background: #f3f4f6;
+  color: #111827;
+}
 
     .wrap{ max-width:1200px; margin:0 auto; padding:18px; }
    /* Theme background should live on #appRoot (because #appRoot.light changes variables) */
@@ -1712,11 +1716,18 @@
     }
 
     function applyThemeUI(isLight){
-      const root = $("appRoot");
-      if (!root) return;
-      root.classList.toggle("light", !!isLight);
-      setStatusKey(isLight ? "status_lightOn" : "status_darkOn");
-    }
+  const root = $("appRoot");
+  if (!root) return;
+
+  // Apply to app UI
+  root.classList.toggle("light", !!isLight);
+
+  // Apply to the whole page background too
+  document.body.classList.toggle("light", !!isLight);
+
+  setStatusKey(isLight ? "status_lightOn" : "status_darkOn");
+}
+
 
     // ---------- Inventory ----------
     function loadInv(){
