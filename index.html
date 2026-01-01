@@ -653,7 +653,12 @@ function clearQRUI(){
   if (out) out.textContent = "";
 }
 
-function makeQR(){
+function appBaseURL(){
+  // Uses your current page URL, but removes any ?query stuff
+  return window.location.origin + window.location.pathname.replace(/index\.html$/i, "");
+}
+
+    function makeQR(){
   const name = ($("qrItemName")?.value || "").trim();
   const priceRaw = ($("qrItemPrice")?.value || "").trim();
 
@@ -669,7 +674,11 @@ function makeQR(){
   }
 
   const price = Number(priceRaw).toFixed(2);
-  const text = `${name} - $${price}`;
+  const url = new URL(appBaseURL());
+url.searchParams.set("item", name);
+url.searchParams.set("price", price);
+const text = url.toString();
+
 
   const box = $("qrPreview");
   const hint = $("qrHint");
@@ -2191,7 +2200,21 @@ clearQRUI();
       showTab("calc");
     }
 
+   function applyQRParamsOnLoad(){
+  const params = new URLSearchParams(window.location.search);
+  const item = params.get("item");
+  const price = params.get("price");
+
+  if (item && $("qrItemName")) $("qrItemName").value = item;
+  if (price && $("qrItemPrice")) $("qrItemPrice").value = price;
+
+  // If opened from a QR scan, jump to Calculator tab so you can see the QR section
+  if (item || price) showTab("calc");
+}
+
     init();
+    applyQRParamsOnLoad();
+
   </script>
 
 </body>
