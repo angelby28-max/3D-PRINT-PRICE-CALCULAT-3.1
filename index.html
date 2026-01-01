@@ -659,6 +659,36 @@ function appBaseURL(){
   // Uses your current page URL, but removes any ?query stuff
   return window.location.origin + window.location.pathname.replace(/index\.html$/i, "");
 }
+function makeQRFromCalculator(){
+  const r = calc();
+  if (!r){
+    alert("Enter some values first so the calculator has a price.");
+    return;
+  }
+
+  // Use per-unit price (best for price tags)
+  const price = r.finalPerUnit;
+
+  // Try Job Name first; if empty, ask
+  let name = ($("jobName")?.value || "").trim();
+  if (!name){
+    name = (prompt("Item name for QR:", "") || "").trim();
+  }
+  if (!name){
+    alert("Please enter an item name.");
+    return;
+  }
+
+  // Fill QR inputs
+  $("qrItemName").value = name;
+  $("qrItemPrice").value = Number(price).toFixed(2);
+
+  // Generate QR
+  makeQR();
+
+  // Scroll to QR so you can see it
+  $("qrItemCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
     function makeQR(){
   const name = ($("qrItemName")?.value || "").trim();
@@ -2040,6 +2070,8 @@ function appBaseURL(){
       // ✅ QR Item buttons
 $("btnMakeQR")?.addEventListener("click", makeQR);
 $("btnClearQR")?.addEventListener("click", clearQRUI);
+      $("makeQRFromCalcBtn")?.addEventListener("click", makeQRFromCalculator);
+
 clearQRUI();
 
 
