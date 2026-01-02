@@ -726,6 +726,7 @@ function printQR(){
 
   const priceNum = Number(priceRaw);
   const priceText = Number.isFinite(priceNum) ? priceNum.toFixed(2) : priceRaw;
+saveDraftToSession();
 
   // ✅ Same-tab printable page (more reliable on iPhone)
   // Save current scroll position so "Back" feels smooth
@@ -1496,6 +1497,7 @@ const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
 
     // NEW: inventory key
     const LS_INV_KEY = "calc_inventory_v1";
+const SS_DRAFT_KEY = "qr_draft_state_v1"; // sessionStorage (temporary)
 
     // Inputs managed
     const inputIds = [
@@ -2214,10 +2216,87 @@ const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
       renderInventory();
       calc();
     }
+function saveDraftToSession(){
+  try{
+    const draft = {
+      // calculator + toggles + presets
+      state: getState(),
+
+      // which tab you were on
+      activeTab: ($("tabInv") && $("tabInv").style.display !== "none") ? "inv" : "calc",
+
+      // QR fields
+      qrItemName: $("qrItemName")?.value || "",
+      qrItemPrice: $("qrItemPrice")?.value || "",
+      qrHint: $("qrHint")?.textContent || "",
+      qrTextOut: $("qrTextOut")?.textContent || "",
+
+      // save the QR image itself (data URL)
+      qrDataUrl: (() => {
+        const qrBox = $("qrPreview");
+        if (!qrBox) return "";
+        const img = qrBox.querySelector("img");
+        const canvas = qrBox.querySelector("canvas");
+        if (img && img.src) return img.src;
+        if (canvas && canvas.toDataURL) return canvas.toDataURL("image/png");
+        return "";
+      })(),
+
+      // scroll position
+      scrollY: window.scrollY || 0,
+      ts: Date.now()
+    };
+
+    sessionStorage.setItem(SS_DRAFT_KEY, JSON.stringify(draft));
+  }catch(e){}
+}
+
+function restoreDraftFromSession(){
+  try{
+    const raw = sessionStorage.getItem(SS_DRAFT_KEY);
+    if (!raw) return;
+
+    const draft = JSON.parse(raw);
+    if (!draft || !draft.state) return;
+
+    // restore calculator state
+    setState(draft.state);
+
+    // restore tab
+    if (draft.activeTab === "inv") showTab("inv");
+    else showTab("calc");
+
+    // restore QR inputs/text
+    if ($("qrItemName")) $("qrItemName").value = draft.qrItemName || "";
+    if ($("qrItemPrice")) $("qrItemPrice").value = draft.qrItemPrice || "";
+    if ($("qrHint") && draft.qrHint) $("qrHint").textContent = draft.qrHint;
+    if ($("qrTextOut")) $("qrTextOut").textContent = draft.qrTextOut || "";
+
+    // restore QR image box
+    const box = $("qrPreview");
+    if (box){
+      box.innerHTML = "";
+      if (draft.qrDataUrl){
+        const im = new Image();
+        im.src = draft.qrDataUrl;
+        im.style.width = "200px";
+        im.style.height = "200px";
+        im.alt = "QR";
+        box.appendChild(im);
+      }
+    }
+
+    // restore scroll
+    const y = Number(draft.scrollY || 0);
+    setTimeout(() => window.scrollTo(0, y), 50);
+  }catch(e){}
+}
 
     // ---------------- init wiring ----------------
     function init(){
       refreshAllPresetSelects();
+// ✅ When iPhone PWA returns (Back), Safari may reload — restore draft state
+window.addEventListener("pageshow", () => restoreDraftFromSession());
 
       // Tabs
       $("tabBtnCalc")?.addEventListener("click", () => showTab("calc"));
@@ -2423,7 +2502,9 @@ if ($("qrHint") && !$("qrPreview")?.innerHTML.trim()){
 }
 
     init();
-   // ✅ If coming back from Print page, reset QR UI so buttons behave normally
+  restoreDraftFromSession();
+
+    // ✅ If coming back from Print page, reset QR UI so buttons behave normally
 if (sessionStorage.getItem("qrJustReturnedFromPrint") === "1") {
   sessionStorage.removeItem("qrJustReturnedFromPrint");
   
