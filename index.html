@@ -2247,7 +2247,14 @@ window.addEventListener("pageshow", (e) => {
 });
 
 
-clearQRUI();
+// Don't auto-clear QR on load (so Back keeps it).
+// Only set the hint text if there is no QR showing.
+if ($("qrHint") && !$("qrPreview")?.innerHTML.trim()){
+  $("qrHint").textContent = (currentLang() === "es")
+    ? "Escribe nombre + precio y luego genera el QR."
+    : "Enter an item name + price, then generate a QR.";
+}
+
 
 
       // Inventory events
