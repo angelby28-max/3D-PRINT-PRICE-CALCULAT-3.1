@@ -731,11 +731,9 @@ function printQR(){
   // Save current scroll position so "Back" feels smooth
   const scrollY = window.scrollY || 0;
   sessionStorage.setItem("qrPrintScrollY", String(scrollY));
+sessionStorage.setItem("qrPrintReturnURL", window.location.href);
 
-  // Store original HTML so we can restore it with Back (simple beginner approach)
-  // NOTE: This is safe here because your app is a single-page file.
-  const original = document.documentElement.outerHTML;
-  sessionStorage.setItem("qrPrintOriginalHTML", original);
+
 
   const lang = currentLang();
   const btnPrint = (lang === "es") ? "Imprimir" : "Print";
@@ -828,18 +826,11 @@ function printQR(){
 
   <script>
     window.__goBackToApp = () => {
-      const original = sessionStorage.getItem("qrPrintOriginalHTML");
-      if (original){
-        document.open();
-        document.write(original);
-        document.close();
-        // restore scroll if possible
-        const y = Number(sessionStorage.getItem("qrPrintScrollY") || "0");
-        setTimeout(()=>window.scrollTo(0,y), 50);
-      } else {
-        history.back();
-      }
-    };
+ sessionStorage.setItem("qrJustReturnedFromPrint", "1");
+const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
+  window.location.href = returnURL;
+};
+
 
     // Try auto-print (works on laptop; sometimes blocked on iPhone PWA)
     window.onload = () => {
@@ -2232,12 +2223,29 @@ function printQR(){
       $("tabBtnCalc")?.addEventListener("click", () => showTab("calc"));
       $("tabBtnInv")?.addEventListener("click", () => showTab("inv"));
       $("openInventoryBtn")?.addEventListener("click", () => showTab("inv"));
-      // ✅ QR Item buttons
-$("btnMakeQR")?.addEventListener("click", makeQR);
-$("btnClearQR")?.addEventListener("click", clearQRUI);
-    $("btnPrintQR")?.addEventListener("click", printQR);
+      
+// ✅ QR Item buttons (iPhone/PWA-safe)
+function wireQRButtons(){
+  const a = $("btnMakeQR");
+  const b = $("btnClearQR");
+  const c = $("btnPrintQR");
+  const d = $("makeQRFromCalcBtn");
 
-        $("makeQRFromCalcBtn")?.addEventListener("click", makeQRFromCalculator);
+  // Use .onclick so it REPLACES handlers instead of stacking duplicates
+  if (a) a.onclick = makeQR;
+  if (b) b.onclick = clearQRUI;
+  if (c) c.onclick = printQR;
+  if (d) d.onclick = makeQRFromCalculator;
+}
+
+// Run once on first load
+wireQRButtons();
+
+// Run again ONLY when Safari restores page from cache (Back button / PWA return)
+window.addEventListener("pageshow", (e) => {
+  if (e && e.persisted) wireQRButtons();
+});
+
 
 clearQRUI();
 
@@ -2408,6 +2416,11 @@ clearQRUI();
 }
 
     init();
+   // ✅ If coming back from Print page, reset QR UI so buttons behave normally
+if (sessionStorage.getItem("qrJustReturnedFromPrint") === "1") {
+  sessionStorage.removeItem("qrJustReturnedFromPrint");
+  clearQRUI();
+}
     applyQRParamsOnLoad();
 
   </script>
