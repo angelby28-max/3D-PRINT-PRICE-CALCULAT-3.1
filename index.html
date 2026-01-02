@@ -2419,7 +2419,7 @@ clearQRUI();
    // ✅ If coming back from Print page, reset QR UI so buttons behave normally
 if (sessionStorage.getItem("qrJustReturnedFromPrint") === "1") {
   sessionStorage.removeItem("qrJustReturnedFromPrint");
-  clearQRUI();
+  
 }
     applyQRParamsOnLoad();
 
