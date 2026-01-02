@@ -710,7 +710,7 @@ function printQR(){
 
   let dataUrl = "";
   if (qrImg && qrImg.src) dataUrl = qrImg.src;
-  else if (qrCanvas) dataUrl = qrCanvas.toDataURL("image/png");
+  else if (qrCanvas && qrCanvas.toDataURL) dataUrl = qrCanvas.toDataURL("image/png");
 
   if (!dataUrl){
     alert("QR image not found. Click Generate QR Code first.");
@@ -727,17 +727,28 @@ function printQR(){
   const priceNum = Number(priceRaw);
   const priceText = Number.isFinite(priceNum) ? priceNum.toFixed(2) : priceRaw;
 
-  const w = window.open("", "_blank", "width=600,height=700");
-  if (!w){
-    alert("Popup blocked. Allow popups for this site, then try again.");
-    return;
-  }
+  // ✅ Same-tab printable page (more reliable on iPhone)
+  // Save current scroll position so "Back" feels smooth
+  const scrollY = window.scrollY || 0;
+  sessionStorage.setItem("qrPrintScrollY", String(scrollY));
 
-  w.document.open();
-  w.document.write(`<!doctype html>
+  // Store original HTML so we can restore it with Back (simple beginner approach)
+  // NOTE: This is safe here because your app is a single-page file.
+  const original = document.documentElement.outerHTML;
+  sessionStorage.setItem("qrPrintOriginalHTML", original);
+
+  const lang = currentLang();
+  const btnPrint = (lang === "es") ? "Imprimir" : "Print";
+  const btnBack  = (lang === "es") ? "Volver" : "Back";
+  const helpTxt  = (lang === "es")
+    ? "Si no aparece la impresión, usa Compartir → Imprimir, o abre en Safari."
+    : "If print doesn’t appear, use Share → Print, or open in Safari.";
+
+  const html = `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Print QR</title>
   <style>
     :root{
@@ -749,6 +760,34 @@ function printQR(){
     @page{ size: var(--label-w) var(--label-h); margin: 0; }
     html,body{ height:100%; }
     body{ margin:0; font-family: Arial, sans-serif; }
+    .toolbar{
+      padding:10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      background:#f3f4f6;
+      border-bottom:1px solid #e5e7eb;
+    }
+    .toolbar button{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #111827;
+      background:#ffffff;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .help{
+      font-size:12px;
+      color:#374151;
+      text-align:center;
+      padding:8px 12px;
+    }
+    .labelWrap{
+      display:flex;
+      justify-content:center;
+      padding:14px;
+    }
     .label{
       width: var(--label-w);
       height: var(--label-h);
@@ -758,26 +797,61 @@ function printQR(){
       grid-template-columns: 1fr auto;
       gap: 0.08in;
       align-items: center;
+      border:1px dashed #9ca3af;
     }
     .name{ font-size: 11pt; font-weight: 700; line-height: 1.05; max-height: 2.2em; overflow: hidden; }
     .price{ font-size: 14pt; font-weight: 900; margin-top: 0.04in; }
     img{ width: var(--qr); height: var(--qr); display:block; }
+    @media print{
+      .toolbar,.help{ display:none; }
+      .labelWrap{ padding:0; }
+      .label{ border:0; }
+    }
   </style>
 </head>
 <body>
-  <div class="label">
-    <div>
-      <div class="name">${esc(name)}</div>
-      <div class="price">$${esc(priceText)}</div>
-    </div>
-    <img src="${dataUrl}" alt="QR">
+  <div class="toolbar">
+    <button onclick="window.print()">${esc(btnPrint)}</button>
+    <button onclick="window.__goBackToApp()">${esc(btnBack)}</button>
   </div>
-  
-</body>
-</html>`);
-  w.document.close();
-    w.onload = () => { w.print(); setTimeout(()=>w.close(), 250); };
+  <div class="help">${esc(helpTxt)}</div>
 
+  <div class="labelWrap">
+    <div class="label">
+      <div>
+        <div class="name">${esc(name)}</div>
+        <div class="price">$${esc(priceText)}</div>
+      </div>
+      <img src="${dataUrl}" alt="QR">
+    </div>
+  </div>
+
+  <script>
+    window.__goBackToApp = () => {
+      const original = sessionStorage.getItem("qrPrintOriginalHTML");
+      if (original){
+        document.open();
+        document.write(original);
+        document.close();
+        // restore scroll if possible
+        const y = Number(sessionStorage.getItem("qrPrintScrollY") || "0");
+        setTimeout(()=>window.scrollTo(0,y), 50);
+      } else {
+        history.back();
+      }
+    };
+
+    // Try auto-print (works on laptop; sometimes blocked on iPhone PWA)
+    window.onload = () => {
+      setTimeout(() => { try{ window.print(); }catch(e){} }, 300);
+    };
+  </script>
+</body>
+</html>`;
+
+  document.open();
+  document.write(html);
+  document.close();
 }
 
     function makeQR(){
