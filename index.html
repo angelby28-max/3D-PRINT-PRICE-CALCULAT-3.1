@@ -399,8 +399,8 @@ body.light{
             </div>
 
             <div>
-              <label data-i18n="packagingCost">Packaging cost ($) — per unit</label>
-              <input id="packagingCost" type="number" min="0" step="0.01" data-i18n-placeholder="ph_packagingCost" placeholder="e.g., 0.75" />
+              <label data-i18n="packagingCost">Packaging & Shipping ($) — per unit</label>
+             <input id="packagingCost" type="number" min="0" step="0.01" data-i18n-placeholder="ph_packagingCost" placeholder="e.g., 0.75" />
             </div>
 
             <div>
@@ -989,7 +989,7 @@ const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
         spoolWeight: "Spool weight (grams)",
         wastePct: "Waste factor (%)",
 
-        packagingCost: "Packaging cost ($) — per unit",
+        packagingCost: "Packaging & Shipping ($) — per unit",
         consumablesCost: "Consumables cost ($) — per unit",
 
         powerKW: "Power draw (kW)",
@@ -1250,8 +1250,9 @@ const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
         spoolWeight: "Peso del rollo (gramos)",
         wastePct: "Desperdicio (%)",
 
-        packagingCost: "Empaque ($) — por unidad",
-        consumablesCost: "Consumibles ($) — por unidad",
+        
+       packagingCost: "Empaque y Envío ($) — por unidad",
+       consumablesCost: "Consumibles ($) — por unidad",
 
         powerKW: "Consumo (kW)",
         elecRate: "Costo de electricidad ($/kWh)",
