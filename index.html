@@ -2024,6 +2024,8 @@ const SS_DRAFT_KEY = "qr_draft_state_v1"; // sessionStorage (temporary)
       renderEmpty();
       // ✅ Also clear saved defaults so refresh doesn't bring numbers back
 localStorage.removeItem(LS_DEFAULTS_KEY);
+// ✅ Clear session draft restore (this is what brings numbers back after refresh)
+sessionStorage.removeItem(SS_DRAFT_KEY);
 
 // ✅ Turn off auto-load defaults
 const s = loadJSON(LS_SETTINGS_KEY, {});
