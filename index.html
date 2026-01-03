@@ -451,6 +451,41 @@ body.light{
           <div class="note" data-i18n-html="bulkNote">
             Bulk discount applies to the <b>batch total</b> (before platform fees). It will not drop below <b>your total cost</b>.
           </div>
+         <!-- =========================
+     CUSTOM ORDER (ADVANCED)
+========================= -->
+<div class="advanced-only">
+  <div class="divider"></div>
+
+  <div class="sec-title">
+    <h2 data-i18n="customTitle">Custom order</h2>
+    <span class="pill" data-i18n="customPill">Extra charge</span>
+  </div>
+
+  <label class="toggle" style="margin:0 0 10px 0;">
+    <input id="isCustom" type="checkbox" />
+    <span data-i18n="customToggle">Enable custom surcharge</span>
+  </label>
+
+  <div id="customFields" style="display:none;">
+    <div class="fields">
+      <div>
+        <label data-i18n="customPctLabel">Custom surcharge (%)</label>
+        <input id="customPct" type="number" min="0" step="0.5" value="15" inputmode="decimal" />
+      </div>
+
+      <div class="row" style="align-self:end; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="secondary" id="customPresetLight" data-i18n="customLight">Light +10%</button>
+        <button type="button" class="secondary" id="customPresetMed" data-i18n="customMed">Medium +15%</button>
+        <button type="button" class="secondary" id="customPresetHeavy" data-i18n="customHeavy">Heavy +25%</button>
+      </div>
+    </div>
+
+    <div class="note" data-i18n="customNote">
+      Covers extra time, revisions, communication, and risk for custom work.
+    </div>
+  </div>
+</div>
 
           <div class="advanced-only">
             <div class="divider"></div>
@@ -2338,8 +2373,58 @@ function restoreDraftFromSession(){
 }
 
     // ---------------- init wiring ----------------
+    // ================================
+// ✅ CUSTOM ORDER UI wiring
+// ================================
+function wireCustomUI(){
+  const isCustom = $("isCustom");
+  const customFields = $("customFields");
+  const customPct = $("customPct");
+
+  const light = $("customPresetLight");
+  const med   = $("customPresetMed");
+  const heavy = $("customPresetHeavy");
+
+  // If user is in Beginner Mode, these elements still exist (but might be hidden).
+  if (!isCustom || !customFields || !customPct) return;
+
+  const refresh = () => {
+    customFields.style.display = isCustom.checked ? "block" : "none";
+    calc(); // update totals
+  };
+
+  isCustom.addEventListener("change", refresh);
+
+  light?.addEventListener("click", () => {
+    isCustom.checked = true;
+    customPct.value = 10;
+    refresh();
+  });
+
+  med?.addEventListener("click", () => {
+    isCustom.checked = true;
+    customPct.value = 15;
+    refresh();
+  });
+
+  heavy?.addEventListener("click", () => {
+    isCustom.checked = true;
+    customPct.value = 25;
+    refresh();
+  });
+
+  customPct.addEventListener("input", () => {
+    if (isCustom.checked) calc();
+  });
+
+  // Initial render
+  refresh();
+}
+
     function init(){
       refreshAllPresetSelects();
+      wireCustomUI();
+
 // ✅ When iPhone PWA returns (Back), Safari may reload — restore draft state
 window.addEventListener("pageshow", () => restoreDraftFromSession());
 
