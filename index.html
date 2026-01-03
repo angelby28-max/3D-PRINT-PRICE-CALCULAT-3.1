@@ -1539,7 +1539,8 @@ const SS_DRAFT_KEY = "qr_draft_state_v1"; // sessionStorage (temporary)
     const inputIds = [
       "quantity","bulkDiscountPct","printHours","gramsUsed","spoolPrice","spoolWeight","wastePct",
       "packagingCost","consumablesCost",
-      "powerKW","elecRate","laborRate","laborMin","overheadPct","profitPct","minFee",
+      "powerKW","elecRate","laborRate","laborMin","overheadPct","profitPct","customPct",
+"minFee",
       "printerPrice","printerLifeHours","maintenancePerHr",
       "platformFeePct","platformFixedFee","platformListingFee","platformNotes",
       "jobName","jobNotes"
@@ -1771,6 +1772,15 @@ const SS_DRAFT_KEY = "qr_draft_state_v1"; // sessionStorage (temporary)
 
       // If we had to floor it, recompute the displayed discount as actual difference
       bulkDiscountAmt = Math.max(0, targetWithMin - discountedTarget);
+      // ✅ Custom surcharge (adds to the target price)
+const isCustom = $("isCustom")?.checked ?? false;
+const customPct = Math.max(0, num("customPct")) / 100;
+
+let customAdded = 0;
+if (isCustom && customPct > 0){
+  customAdded = discountedTarget * customPct;
+  discountedTarget = discountedTarget + customAdded;
+}
 
       let final = discountedTarget;
       let platformAdded = 0;
@@ -2517,6 +2527,7 @@ if ($("qrHint") && !$("qrPreview")?.innerHTML.trim()){
       inputIds.forEach(id => { if ($(id)) $(id).addEventListener("input", calc); });
       $("includePlatformFees")?.addEventListener("change", calc);
       $("laborPerUnit")?.addEventListener("change", calc);
+      $("isCustom")?.addEventListener("change", calc);
 
       // Defaults buttons
       $("saveDefaultsBtn")?.addEventListener("click", saveDefaults);
