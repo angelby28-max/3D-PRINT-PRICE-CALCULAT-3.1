@@ -271,6 +271,7 @@ body.light{
 
     <div class="btns">
       <button id="btnMakeQR" type="button">Generate QR Code</button>
+      <button id="btnAddInvFromQR" class="secondary" type="button">Add to Inventory</button>
       <button id="btnClearQR" class="secondary" type="button">Clear</button>
       <button id="btnPrintQR" class="secondary" type="button">Print QR</button>
 
@@ -2168,6 +2169,50 @@ const SS_DRAFT_KEY = "qr_draft_state_v1"; // sessionStorage (temporary)
       $("status").textContent = t("inv_status_added");
       $("status").dataset.i18nStatusKey = "";
     }
+function addQRToInventory(){
+  const name = ($("qrItemName")?.value || "").trim();
+  const priceRaw = ($("qrItemPrice")?.value || "").trim();
+
+  if (!name){
+    alert((currentLang()==="es") ? "Escribe un nombre." : "Enter an item name.");
+    $("qrItemName")?.focus();
+    return;
+  }
+
+  const priceNum = Number(priceRaw);
+  if (!priceRaw || !Number.isFinite(priceNum) || priceNum <= 0){
+    alert((currentLang()==="es") ? "Escribe un precio válido." : "Enter a valid price.");
+    $("qrItemPrice")?.focus();
+    return;
+  }
+
+  // Ask starting qty (default 1)
+  const lang = currentLang();
+  const qtyPrompt = (lang === "es") ? "Cantidad inicial (ej. 5):" : "Starting quantity (e.g., 5):";
+  const qtyRaw = prompt(qtyPrompt, "1");
+  if (qtyRaw === null) return; // user canceled
+  const qty = Math.max(0, parseInt(qtyRaw, 10) || 0);
+
+  const inv = loadInv();
+  inv.push({
+    id: invId(),
+    createdAt: new Date().toISOString(),
+    name: name,
+    notes: "",
+    qty: qty,
+    pricePerUnit: Number(priceNum.toFixed(2)),
+    priceTotal: Number((priceNum * Math.max(1, qty)).toFixed(2))
+  });
+
+  saveInv(inv);
+
+  // Feedback + jump to inventory
+  const msg = (lang === "es") ? "Agregado al inventario ✅" : "Added to inventory ✅";
+  $("status").textContent = msg;
+  $("status").dataset.i18nStatusKey = "";
+
+  showTab("inv");
+}
 
     // ---------- Tabs ----------
     function showTab(which){
@@ -2348,6 +2393,7 @@ if ($("qrHint") && !$("qrPreview")?.innerHTML.trim()){
       });
       $("invClearBtn")?.addEventListener("click", clearInventory);
       $("addToInventoryBtn")?.addEventListener("click", addCurrentCalcToInventory);
+      $("btnAddInvFromQR")?.addEventListener("click", addQRToInventory);
 
       // Apply buttons
       $("applyPrinterBtn")?.addEventListener("click", () => {
