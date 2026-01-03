@@ -2022,6 +2022,15 @@ const SS_DRAFT_KEY = "qr_draft_state_v1"; // sessionStorage (temporary)
       if ($("platformPreset")) $("platformPreset").value = "none";
       if ($("laborPerUnit")) $("laborPerUnit").checked = false;
       renderEmpty();
+      // ✅ Also clear saved defaults so refresh doesn't bring numbers back
+localStorage.removeItem(LS_DEFAULTS_KEY);
+
+// ✅ Turn off auto-load defaults
+const s = loadJSON(LS_SETTINGS_KEY, {});
+s.autoLoadDefaults = false;
+saveJSON(LS_SETTINGS_KEY, s);
+if ($("autoLoadDefaults")) $("autoLoadDefaults").checked = false;
+
     }
 
     function applyBeginnerModeUI(isBeginner){
