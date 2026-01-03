@@ -2022,6 +2022,11 @@ const SS_DRAFT_KEY = "qr_draft_state_v1"; // sessionStorage (temporary)
       if ($("platformPreset")) $("platformPreset").value = "none";
       if ($("laborPerUnit")) $("laborPerUnit").checked = false;
       renderEmpty();
+      // ✅ Clear QR section too
+if ($("qrItemName")) $("qrItemName").value = "";
+if ($("qrItemPrice")) $("qrItemPrice").value = "";
+clearQRUI();
+
       // ✅ Also clear saved defaults so refresh doesn't bring numbers back
 localStorage.removeItem(LS_DEFAULTS_KEY);
 // ✅ Clear session draft restore (this is what brings numbers back after refresh)
