@@ -2188,6 +2188,120 @@ window.__labelQty = (id, v) => {
   const s = getLabelSel(id);
   s.qty = Number.isFinite(n) && n > 0 ? n : 1;
 };
+function clearLabelSelection(){
+  for (const k in LABEL_SEL) delete LABEL_SEL[k];
+  renderInventory();
+
+  const lang = currentLang();
+  const msg = (lang === "es") ? "Selección borrada ✅" : "Selection cleared ✅";
+  const st = $("status");
+  if (st){
+    st.textContent = msg;
+    st.dataset.i18nStatusKey = "";
+  }
+}
+
+function buildQRUrlForItem(name, price){
+  const url = new URL(appBaseURL());
+  url.searchParams.set("item", name);
+  url.searchParams.set("price", Number(price).toFixed(2));
+  return url.toString();
+}
+
+function qrDataUrl(text, sizePx){
+  return new Promise((resolve) => {
+    const tmp = document.createElement("div");
+    tmp.style.position = "fixed";
+    tmp.style.left = "-99999px";
+    document.body.appendChild(tmp);
+
+    new QRCode(tmp, {
+      text,
+      width: sizePx,
+      height: sizePx,
+      correctLevel: QRCode.CorrectLevel.M
+    });
+
+    setTimeout(() => {
+      let dataUrl = "";
+      const img = tmp.querySelector("img");
+      const canvas = tmp.querySelector("canvas");
+      if (img && img.src) dataUrl = img.src;
+      else if (canvas && canvas.toDataURL) dataUrl = canvas.toDataURL("image/png");
+      document.body.removeChild(tmp);
+      resolve(dataUrl || "");
+    }, 30);
+  });
+}
+
+async function printSelectedLabels(){
+  const inv = loadInv();
+  const chosen = [];
+
+  for (const item of inv){
+    const sel = LABEL_SEL[item.id];
+    if (!sel || !sel.selected) continue;
+    const qty = Math.max(1, parseInt(sel.qty, 10) || 1);
+    for (let i = 0; i < qty; i++) chosen.push(item);
+  }
+
+  if (!chosen.length){
+    alert(currentLang()==="es"
+      ? "Selecciona al menos un artículo"
+      : "Select at least one item");
+    return;
+  }
+
+  const mm = ($("labelPreset")?.value === "80") ? 80 : 58;
+  const qrPx = parseInt($("labelQRSize")?.value || "180", 10);
+  const fontPx = parseInt($("labelFontSize")?.value || "13", 10);
+  const showPrice = $("labelShowPrice")?.checked ?? true;
+
+  const rows = [];
+  for (const it of chosen){
+    const url = buildQRUrlForItem(it.name, it.pricePerUnit || 0);
+    const png = await qrDataUrl(url, qrPx);
+    rows.push({ name: it.name, price: it.pricePerUnit, png });
+  }
+
+  const html = `
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@page{ size:${mm}mm auto; margin:0 }
+body{ margin:0; font-family:Arial }
+.label{
+  width:${mm}mm;
+  padding:3mm;
+  display:grid;
+  grid-template-columns:1fr auto;
+  border-bottom:1px dashed #ccc;
+}
+.name{ font-size:${fontPx}px; font-weight:700 }
+.price{ font-size:${fontPx+4}px; font-weight:900 }
+img{ width:${qrPx}px; height:${qrPx}px }
+</style>
+</head>
+<body>
+${rows.map(r=>`
+  <div class="label">
+    <div>
+      <div class="name">${r.name}</div>
+      ${showPrice ? `<div class="price">$${Number(r.price).toFixed(2)}</div>` : ``}
+    </div>
+    <img src="${r.png}">
+  </div>
+`).join("")}
+<script>setTimeout(()=>window.print(),300)</script>
+</body>
+</html>
+`;
+  document.open();
+  document.write(html);
+  document.close();
+}
 
     function loadInv(){
       const inv = loadJSON(LS_INV_KEY, []);
