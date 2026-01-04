@@ -2220,6 +2220,22 @@ window.__labelQty = (id, v) => {
               <div>
                 <div class="invTitle">${escapeHTML(item.name || "—")}</div>
                 <div class="invMeta">${escapeHTML(meta)}${created ? "<br/>" + escapeHTML(created) : ""}</div>
+                <div class="row" style="margin-top:8px; gap:10px; align-items:center;">
+  <label class="toggle" style="margin:0;">
+    <input type="checkbox"
+      onchange="window.__labelToggle('${item.id}', this.checked)"
+      ${getLabelSel(item.id).selected ? "checked" : ""} />
+    <span data-i18n="labels_select">Select</span>
+  </label>
+
+  <div style="max-width:160px;">
+    <label style="margin:0 0 4px 0;" data-i18n="labels_printQty">Print Qty</label>
+    <input type="number" min="1" step="1"
+      value="${getLabelSel(item.id).qty}"
+      oninput="window.__labelQty('${item.id}', this.value)" />
+  </div>
+</div>
+
                 ${item.notes ? `<div class="invMeta" style="margin-top:6px;">${escapeHTML(item.notes)}</div>` : ""}
               </div>
               <div class="invActions">
