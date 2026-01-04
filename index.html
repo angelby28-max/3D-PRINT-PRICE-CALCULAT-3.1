@@ -979,16 +979,8 @@ const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
 labels_pill: "Multi-print on one sheet",
 labels_preset: "Label preset",
 labels_qrSize: "QR size",
-labels_select: "Select",
-labels_printQty: "Print Qty",  
-labels_printSelected: "Print Selected",
-labels_clearSelection: "Clear selection",
-labels_tip: "Tip: In the list below, check items you want to print, and set “Print Qty” for each.",
-labels_fontSize: "Text size",
-labels_showPrice: "Show price",
-labels_qrHint: "Smaller for tiny tags, bigger for easier scanning.",
-labels_preset_58: "58mm",
-labels_preset_80: "80mm",
+  labels_select: "Select",
+labels_printQty: "Print Qty",      
 labels_qrHint: "Smaller for tiny tags, bigger for easier scanning.",
 labels_showPrice: "Show price",
 labels_printSelected: "Print Selected",
@@ -1266,14 +1258,6 @@ labels_preset: "Tamaño de etiqueta",
 labels_select: "Seleccionar",
 labels_printQty: "Cant. a imprimir",
 labels_qrSize: "Tamaño del QR",
-labels_printSelected: "Imprimir seleccionados",
-labels_clearSelection: "Borrar selección",
-labels_tip: "Tip: Marca los artículos que quieres imprimir y ajusta “Cant. a imprimir” para cada uno.",
-labels_fontSize: "Tamaño del texto",
-labels_showPrice: "Mostrar precio",
-labels_qrHint: "Más pequeño para etiquetas pequeñas; más grande para escanear fácil.",
-labels_preset_58: "58mm",
-labels_preset_80: "80mm",
 labels_qrHint: "Más pequeño para etiquetas chicas, más grande para escanear fácil.",
 labels_showPrice: "Mostrar precio",
 labels_printSelected: "Imprimir seleccionados",
@@ -2628,14 +2612,11 @@ if ($("qrHint") && !$("qrPreview")?.innerHTML.trim()){
       $("invExportBtn")?.addEventListener("click", exportInventory);
       $("invImportBtn")?.addEventListener("click", () => $("invImportFile")?.click());
       $("invImportFile")?.addEventListener("change", async (e) => {
-      const f = e.target.files?.[0];
+        const f = e.target.files?.[0];
         if (!f) return;
         await importInventoryFromFile(f);
         e.target.value = "";
       });
-      $("btnPrintSelectedLabels")?.addEventListener("click", printSelectedLabels);
-      $("btnClearLabelSelection")?.addEventListener("click", clearLabelSelection);
-
       $("invClearBtn")?.addEventListener("click", clearInventory);
       $("addToInventoryBtn")?.addEventListener("click", addCurrentCalcToInventory);
       $("btnAddInvFromQR")?.addEventListener("click", addQRToInventory);
