@@ -979,6 +979,8 @@ const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
 labels_pill: "Multi-print on one sheet",
 labels_preset: "Label preset",
 labels_qrSize: "QR size",
+  labels_select: "Select",
+labels_printQty: "Print Qty",      
 labels_qrHint: "Smaller for tiny tags, bigger for easier scanning.",
 labels_showPrice: "Show price",
 labels_printSelected: "Print Selected",
@@ -1253,6 +1255,8 @@ labels_printQty: "Print Qty",
 labels_title: "Imprimir etiquetas",
 labels_pill: "Varias en una hoja",
 labels_preset: "Tamaño de etiqueta",
+labels_select: "Seleccionar",
+labels_printQty: "Cant. a imprimir",
 labels_qrSize: "Tamaño del QR",
 labels_qrHint: "Más pequeño para etiquetas chicas, más grande para escanear fácil.",
 labels_showPrice: "Mostrar precio",
@@ -2225,11 +2229,11 @@ window.__labelQty = (id, v) => {
     <input type="checkbox"
       onchange="window.__labelToggle('${item.id}', this.checked)"
       ${getLabelSel(item.id).selected ? "checked" : ""} />
-    <span data-i18n="labels_select">Select</span>
+    <span>${escapeHTML(t("labels_select"))}</span>
   </label>
 
   <div style="max-width:160px;">
-    <label style="margin:0 0 4px 0;" data-i18n="labels_printQty">Print Qty</label>
+    <label style="margin:0 0 4px 0;">${escapeHTML(t("labels_printQty"))}</label>
     <input type="number" min="1" step="1"
       value="${getLabelSel(item.id).qty}"
       oninput="window.__labelQty('${item.id}', this.value)" />
