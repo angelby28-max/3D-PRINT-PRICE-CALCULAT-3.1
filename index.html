@@ -2628,11 +2628,14 @@ if ($("qrHint") && !$("qrPreview")?.innerHTML.trim()){
       $("invExportBtn")?.addEventListener("click", exportInventory);
       $("invImportBtn")?.addEventListener("click", () => $("invImportFile")?.click());
       $("invImportFile")?.addEventListener("change", async (e) => {
-        const f = e.target.files?.[0];
+      const f = e.target.files?.[0];
         if (!f) return;
         await importInventoryFromFile(f);
         e.target.value = "";
       });
+      $("btnPrintSelectedLabels")?.addEventListener("click", printSelectedLabels);
+      $("btnClearLabelSelection")?.addEventListener("click", clearLabelSelection);
+
       $("invClearBtn")?.addEventListener("click", clearInventory);
       $("addToInventoryBtn")?.addEventListener("click", addCurrentCalcToInventory);
       $("btnAddInvFromQR")?.addEventListener("click", addQRToInventory);
