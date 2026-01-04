@@ -655,6 +655,53 @@ body.light{
           <h2 data-i18n="inv_title">Inventory</h2>
           <span class="pill" id="invCountPill">0 items</span>
         </div>
+<div class="divider"></div>
+
+<!-- ✅ Thermal Label Printing -->
+<div class="card" id="labelPrintCard" style="margin-top:12px;">
+  <div class="sec-title">
+    <h2 data-i18n="labels_title">Print Labels</h2>
+    <span class="pill" data-i18n="labels_pill">Thermal (58/80mm)</span>
+  </div>
+
+  <div class="fields">
+    <div>
+      <label data-i18n="labels_preset">Label size</label>
+      <select id="labelPreset">
+        <option value="58">58mm</option>
+        <option value="80">80mm</option>
+      </select>
+    </div>
+
+    <div>
+      <label data-i18n="labels_qrSize">QR size</label>
+      <input id="labelQRSize" type="range" min="120" max="260" step="10" value="180" />
+      <div class="tiny" data-i18n="labels_qrHint">Smaller for tiny tags, bigger for easier scanning.</div>
+    </div>
+
+    <div>
+      <label data-i18n="labels_fontSize">Text size</label>
+      <input id="labelFontSize" type="range" min="10" max="20" step="1" value="13" />
+    </div>
+
+    <div class="row" style="align-self:end;">
+      <label class="toggle" style="margin:0;">
+        <input id="labelShowPrice" type="checkbox" checked />
+        <span data-i18n="labels_showPrice">Show price</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="btns">
+    <button id="btnPrintSelectedLabels" type="button" data-i18n="labels_printSelected">Print Selected</button>
+    <button id="btnClearLabelSelection" class="secondary" type="button" data-i18n="labels_clearSelection">Clear selection</button>
+  </div>
+
+  <div class="tiny" data-i18n="labels_tip">
+    Tip: In the list below, check items you want to print, and set “Print Qty” for each.
+  </div>
+</div>
+<!-- ✅ End Thermal Label Printing -->
 
         <div class="row" style="align-items:flex-end;">
           <div style="flex:1; min-width:220px;">
