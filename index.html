@@ -2171,6 +2171,7 @@ if ($("autoLoadDefaults")) $("autoLoadDefaults").checked = false;
 
     // ---------- Inventory ----------
    // ✅ Label print selection state (temporary; resets on refresh)
+// ✅ Label print selection state (temporary; resets on refresh)
 const LABEL_SEL = {}; // { [invId]: { selected: boolean, qty: number } }
 
 function getLabelSel(id){
@@ -2188,6 +2189,7 @@ window.__labelQty = (id, v) => {
   const s = getLabelSel(id);
   s.qty = Number.isFinite(n) && n > 0 ? n : 1;
 };
+
 function clearLabelSelection(){
   for (const k in LABEL_SEL) delete LABEL_SEL[k];
   renderInventory();
@@ -2201,18 +2203,31 @@ function clearLabelSelection(){
   }
 }
 
+// Build the same kind of QR URL your app already uses
 function buildQRUrlForItem(name, price){
   const url = new URL(appBaseURL());
-  url.searchParams.set("item", name);
-  url.searchParams.set("price", Number(price).toFixed(2));
+  url.searchParams.set("item", name || "");
+  url.searchParams.set("price", Number(price || 0).toFixed(2));
   return url.toString();
 }
 
+// Escape HTML so item names never break the print page
+function escHTML(s){
+  return String(s ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+// Create a QR png dataURL using QRCodeJS (async)
 function qrDataUrl(text, sizePx){
   return new Promise((resolve) => {
     const tmp = document.createElement("div");
     tmp.style.position = "fixed";
     tmp.style.left = "-99999px";
+    tmp.style.top = "0";
     document.body.appendChild(tmp);
 
     new QRCode(tmp, {
@@ -2222,12 +2237,14 @@ function qrDataUrl(text, sizePx){
       correctLevel: QRCode.CorrectLevel.M
     });
 
+    // Wait a tick so QRCodeJS can render
     setTimeout(() => {
       let dataUrl = "";
       const img = tmp.querySelector("img");
       const canvas = tmp.querySelector("canvas");
       if (img && img.src) dataUrl = img.src;
       else if (canvas && canvas.toDataURL) dataUrl = canvas.toDataURL("image/png");
+
       document.body.removeChild(tmp);
       resolve(dataUrl || "");
     }, 30);
@@ -2238,6 +2255,7 @@ async function printSelectedLabels(){
   const inv = loadInv();
   const chosen = [];
 
+  // Expand by print qty
   for (const item of inv){
     const sel = LABEL_SEL[item.id];
     if (!sel || !sel.selected) continue;
@@ -2247,61 +2265,116 @@ async function printSelectedLabels(){
 
   if (!chosen.length){
     alert(currentLang()==="es"
-      ? "Selecciona al menos un artículo"
-      : "Select at least one item");
+      ? "Selecciona al menos un artículo."
+      : "Select at least one item.");
     return;
   }
 
-  const mm = ($("labelPreset")?.value === "80") ? 80 : 58;
-  const qrPx = parseInt($("labelQRSize")?.value || "180", 10);
-  const fontPx = parseInt($("labelFontSize")?.value || "13", 10);
+  // Read print settings from your UI
+  const mm = ($("labelPreset")?.value === "80") ? 80 : 58;          // paper width
+  const qrPx = parseInt($("labelQRSize")?.value || "180", 10);      // qr pixels
+  const fontPx = parseInt($("labelFontSize")?.value || "13", 10);   // font px
   const showPrice = $("labelShowPrice")?.checked ?? true;
 
+  // Build rows with QR images
   const rows = [];
   for (const it of chosen){
     const url = buildQRUrlForItem(it.name, it.pricePerUnit || 0);
     const png = await qrDataUrl(url, qrPx);
-    rows.push({ name: it.name, price: it.pricePerUnit, png });
+    rows.push({
+      name: it.name || "",
+      price: Number(it.pricePerUnit || 0),
+      png
+    });
   }
 
-  const html = `
-<!doctype html>
+  // Save return URL so Back works like your QR print page
+  sessionStorage.setItem("labelPrintReturnURL", window.location.href);
+
+  const lang = currentLang();
+  const btnPrint = (lang === "es") ? "Imprimir" : "Print";
+  const btnBack  = (lang === "es") ? "Volver" : "Back";
+
+  // Print page (same-tab, PWA-friendly)
+  const html = `<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Print Labels</title>
 <style>
-@page{ size:${mm}mm auto; margin:0 }
-body{ margin:0; font-family:Arial }
-.label{
-  width:${mm}mm;
-  padding:3mm;
-  display:grid;
-  grid-template-columns:1fr auto;
-  border-bottom:1px dashed #ccc;
-}
-.name{ font-size:${fontPx}px; font-weight:700 }
-.price{ font-size:${fontPx+4}px; font-weight:900 }
-img{ width:${qrPx}px; height:${qrPx}px }
+  @page{ size:${mm}mm auto; margin:0; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family: Arial, sans-serif; }
+
+  .toolbar{
+    padding:10px;
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    align-items:center;
+    background:#f3f4f6;
+    border-bottom:1px solid #e5e7eb;
+  }
+  .toolbar button{
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid #111827;
+    background:#ffffff;
+    font-weight:800;
+    cursor:pointer;
+  }
+
+  .label{
+    width:${mm}mm;
+    box-sizing:border-box;
+    padding:3mm;
+    display:grid;
+    grid-template-columns: 1fr auto;
+    gap: 3mm;
+    align-items:center;
+    border-bottom: 1px dashed #ccc;
+  }
+  .name{ font-size:${fontPx}px; font-weight:700; line-height:1.1; }
+  .price{ font-size:${fontPx + 5}px; font-weight:900; margin-top:2mm; }
+  img{ width:${qrPx}px; height:${qrPx}px; display:block; }
+
+  @media print{
+    .toolbar{ display:none; }
+    .label{ border-bottom: 0; }
+  }
 </style>
 </head>
 <body>
-${rows.map(r=>`
-  <div class="label">
-    <div>
-      <div class="name">${r.name}</div>
-      ${showPrice ? `<div class="price">$${Number(r.price).toFixed(2)}</div>` : ``}
-    </div>
-    <img src="${r.png}">
+  <div class="toolbar">
+    <button onclick="window.print()">${escHTML(btnPrint)}</button>
+    <button onclick="(function(){
+      const u = sessionStorage.getItem('labelPrintReturnURL') || './';
+      window.location.href = u;
+    })()">${escHTML(btnBack)}</button>
   </div>
-`).join("")}
-<script>setTimeout(()=>window.print(),300)</script>
+
+  ${rows.map(r => `
+    <div class="label">
+      <div>
+        <div class="name">${escHTML(r.name)}</div>
+        ${showPrice ? `<div class="price">$${escHTML(r.price.toFixed(2))}</div>` : ``}
+      </div>
+      <img src="${r.png}" alt="QR">
+    </div>
+  `).join("")}
+
+  <script>
+    window.onload = () => { setTimeout(() => { try{ window.print(); }catch(e){} }, 300); };
+  </script>
 </body>
-</html>
-`;
+</html>`;
+
   document.open();
   document.write(html);
   document.close();
 }
+
 
     function loadInv(){
       const inv = loadJSON(LS_INV_KEY, []);
