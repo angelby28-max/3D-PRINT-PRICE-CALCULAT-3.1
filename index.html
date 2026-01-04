@@ -2150,6 +2150,25 @@ if ($("autoLoadDefaults")) $("autoLoadDefaults").checked = false;
 
 
     // ---------- Inventory ----------
+   // ✅ Label print selection state (temporary; resets on refresh)
+const LABEL_SEL = {}; // { [invId]: { selected: boolean, qty: number } }
+
+function getLabelSel(id){
+  if (!LABEL_SEL[id]) LABEL_SEL[id] = { selected:false, qty: 1 };
+  return LABEL_SEL[id];
+}
+
+window.__labelToggle = (id, on) => {
+  const s = getLabelSel(id);
+  s.selected = !!on;
+};
+
+window.__labelQty = (id, v) => {
+  const n = parseInt(v, 10);
+  const s = getLabelSel(id);
+  s.qty = Number.isFinite(n) && n > 0 ? n : 1;
+};
+
     function loadInv(){
       const inv = loadJSON(LS_INV_KEY, []);
       return Array.isArray(inv) ? inv : [];
