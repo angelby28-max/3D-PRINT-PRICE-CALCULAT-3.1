@@ -2172,6 +2172,226 @@ window.__labelQty = (id, v) => {
   const s = getLabelSel(id);
   s.qty = Number.isFinite(n) && n > 0 ? n : 1;
 };
+// ✅ Clear label selection (checkboxes + qty)
+function clearLabelSelection(){
+  for (const k in LABEL_SEL) delete LABEL_SEL[k];
+  renderInventory();
+}
+
+// ✅ Build the URL that the QR should contain (same logic as makeQR)
+function buildQRUrlForItem(name, price){
+  const url = new URL(appBaseURL());
+  url.searchParams.set("item", name);
+  url.searchParams.set("price", Number(price).toFixed(2));
+  return url.toString();
+}
+
+// ✅ Generate a QR image dataURL (so we can print many at once)
+function makeQRDataURL(text, sizePx){
+  // Create a temporary container
+  const temp = document.createElement("div");
+  temp.style.position = "fixed";
+  temp.style.left = "-9999px";
+  temp.style.top = "-9999px";
+  document.body.appendChild(temp);
+
+  // Generate QR into temp
+  new QRCode(temp, {
+    text,
+    width: sizePx,
+    height: sizePx,
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  // Extract image/canvas
+  const img = temp.querySelector("img");
+  const canvas = temp.querySelector("canvas");
+  let dataUrl = "";
+  if (img && img.src) dataUrl = img.src;
+  else if (canvas && canvas.toDataURL) dataUrl = canvas.toDataURL("image/png");
+
+  // Cleanup
+  temp.remove();
+  return dataUrl;
+}
+
+// ✅ Multi-print selected inventory labels (58/80mm)
+function printSelectedLabels(){
+  const inv = loadInv();
+
+  // UI settings
+  const preset = ($("labelPreset")?.value || "58").trim(); // "58" or "80"
+  const qrSize = parseInt($("labelQRSize")?.value || "180", 10);
+  const fontSize = parseInt($("labelFontSize")?.value || "13", 10);
+  const showPrice = $("labelShowPrice")?.checked ?? true;
+
+  // Collect selected items with qty
+  const selected = [];
+  for (const item of inv){
+    const sel = LABEL_SEL[item.id];
+    if (sel && sel.selected){
+      const copies = Math.max(1, parseInt(sel.qty || 1, 10) || 1);
+      selected.push({ item, copies });
+    }
+  }
+
+  if (!selected.length){
+    alert((currentLang()==="es") ? "Selecciona al menos un artículo para imprimir." : "Select at least one item to print.");
+    return;
+  }
+
+  const esc = (s) => String(s)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+
+  // Build label HTML blocks (repeat per item copies)
+  const labels = [];
+  for (const row of selected){
+    const name = row.item.name || "";
+    const price = Number(row.item.pricePerUnit || 0);
+    const url = buildQRUrlForItem(name, price);
+    const qrDataUrl = makeQRDataURL(url, qrSize);
+
+    for (let i=0; i<row.copies; i++){
+      labels.push({ name, price, qrDataUrl });
+    }
+  }
+
+  // Thermal widths (CSS uses mm)
+  const pageW = (preset === "80") ? "80mm" : "58mm";
+
+  const lang = currentLang();
+  const btnPrint = (lang === "es") ? "Imprimir" : "Print";
+  const btnBack  = (lang === "es") ? "Volver" : "Back";
+  const helpTxt  = (lang === "es")
+    ? "Consejo: En iPhone/PWA, si no aparece imprimir, usa Compartir → Imprimir o abre en Safari."
+    : "Tip: On iPhone/PWA, if print doesn’t appear, use Share → Print or open in Safari.";
+
+  const labelsHTML = labels.map(l => {
+    const priceText = Number.isFinite(l.price) ? l.price.toFixed(2) : "0.00";
+    return `
+      <div class="label">
+        <div class="txt">
+          <div class="name">${esc(l.name)}</div>
+          ${showPrice ? `<div class="price">$${esc(priceText)}</div>` : ``}
+        </div>
+        <img src="${l.qrDataUrl}" alt="QR">
+      </div>
+    `;
+  }).join("");
+
+  // Save return URL (like your printQR)
+  sessionStorage.setItem("qrPrintReturnURL", window.location.href);
+
+  const html = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Print Labels</title>
+  <style>
+    @page { size: ${pageW} auto; margin: 0; }
+    html,body{ margin:0; padding:0; }
+    body{ font-family: Arial, sans-serif; }
+
+    .toolbar{
+      padding:10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      background:#f3f4f6;
+      border-bottom:1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+    }
+    .toolbar button{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #111827;
+      background:#ffffff;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .help{
+      font-size:12px;
+      color:#374151;
+      text-align:center;
+      padding:8px 12px;
+    }
+
+    .sheet{
+      width: ${pageW};
+      box-sizing:border-box;
+      padding: 2mm;
+    }
+
+    .label{
+      width: 100%;
+      box-sizing: border-box;
+      padding: 2mm;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2mm;
+      align-items: center;
+      border-bottom: 1px dashed #9ca3af;
+    }
+
+    .name{
+      font-size: ${fontSize}px;
+      font-weight: 800;
+      line-height: 1.1;
+      word-break: break-word;
+    }
+    .price{
+      margin-top: 1mm;
+      font-size: ${Math.max(fontSize+2, fontSize)}px;
+      font-weight: 900;
+    }
+
+    img{
+      width: ${qrSize}px;
+      height: ${qrSize}px;
+      display:block;
+    }
+
+    @media print{
+      .toolbar,.help{ display:none; }
+      .sheet{ padding: 0; }
+      .label{ border-bottom: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button onclick="window.print()">${esc(btnPrint)}</button>
+    <button onclick="window.__goBackToApp()">${esc(btnBack)}</button>
+  </div>
+  <div class="help">${esc(helpTxt)}</div>
+
+  <div class="sheet">
+    ${labelsHTML}
+  </div>
+
+  <script>
+    window.__goBackToApp = () => {
+      const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
+      window.location.href = returnURL;
+    };
+    window.onload = () => {
+      setTimeout(() => { try{ window.print(); }catch(e){} }, 300);
+    };
+  </scr` + `ipt>
+</body>
+</html>`;
+
+  document.open();
+  document.write(html);
+  document.close();
+}
 
     function loadInv(){
       const inv = loadJSON(LS_INV_KEY, []);
