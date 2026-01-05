@@ -674,6 +674,14 @@ body.light{
     </div>
 
     <div>
+      <div>
+  <label data-i18n="labels_printerType">Printer type</label>
+  <select id="labelPrinterType">
+    <option value="thermal" data-i18n="labels_printerThermal">Thermal (58 / 80 mm)</option>
+    <option value="sheet" data-i18n="labels_printerSheet">Sheet (Letter / A4)</option>
+  </select>
+</div>
+
       <label data-i18n="labels_qrSize">QR size</label>
       <input id="labelQRSize" type="range" min="120" max="260" step="10" value="180" />
       <div class="tiny" data-i18n="labels_qrHint">Smaller for tiny tags, bigger for easier scanning.</div>
@@ -979,7 +987,10 @@ const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
 labels_pill: "Multi-print on one sheet",
 labels_preset: "Label preset",
 labels_qrSize: "QR size",
-  labels_select: "Select",
+labels_printerType: "Printer type",
+labels_printerThermal: "Thermal (58 / 80 mm)",
+labels_printerSheet: "Sheet (Letter / A4)",
+labels_select: "Select",
 labels_printQty: "Print Qty",      
 labels_qrHint: "Smaller for tiny tags, bigger for easier scanning.",
 labels_showPrice: "Show price",
@@ -1256,6 +1267,9 @@ labels_title: "Imprimir etiquetas",
 labels_pill: "Varias en una hoja",
 labels_preset: "Tamaño de etiqueta",
 labels_select: "Seleccionar",
+labels_printerType: "Tipo de impresora",
+labels_printerThermal: "Térmica (58 / 80 mm)",
+labels_printerSheet: "Hoja (Carta / A4)",
 labels_printQty: "Cant. a imprimir",
 labels_qrSize: "Tamaño del QR",
 labels_qrHint: "Más pequeño para etiquetas chicas, más grande para escanear fácil.",
