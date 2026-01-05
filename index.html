@@ -2838,6 +2838,9 @@ if ($("qrHint") && !$("qrPreview")?.innerHTML.trim()){
         e.target.value = "";
       });
       $("invClearBtn")?.addEventListener("click", clearInventory);
+     $("btnPrintSelectedLabels")?.addEventListener("click", printSelectedLabels);
+     $("btnClearLabelSelection")?.addEventListener("click", clearLabelSelection);
+
       $("addToInventoryBtn")?.addEventListener("click", addCurrentCalcToInventory);
       $("btnAddInvFromQR")?.addEventListener("click", addQRToInventory);
 
