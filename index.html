@@ -2294,9 +2294,18 @@ function printSelectedLabels(){
   <title>Print Labels</title>
   <style>
     @page { size: ${pageW} auto; margin: 0; }
-    html,body{ margin:0; padding:0; }
+       html,body{ height:100%; margin:0; padding:0; }
     body{ font-family: Arial, sans-serif; }
 
+    :root{
+      --pad: 2mm;
+      --gap: 2mm;
+      --qr: ${qrSize}px;
+      --font: ${fontSize}px;
+
+    }
+
+    /* On screen toolbar */
     .toolbar{
       padding:10px;
       display:flex;
@@ -2305,8 +2314,6 @@ function printSelectedLabels(){
       justify-content:center;
       background:#f3f4f6;
       border-bottom:1px solid #e5e7eb;
-      position: sticky;
-      top: 0;
     }
     .toolbar button{
       padding:10px 12px;
@@ -2323,46 +2330,37 @@ function printSelectedLabels(){
       padding:8px 12px;
     }
 
-    .sheet{
-      width: ${pageW};
-      box-sizing:border-box;
-      padding: 2mm;
-    }
-
+    /* ✅ Thermal roll: one label per page */
     .label{
-      width: 100%;
+      width: ${pageW};
       box-sizing: border-box;
-      padding: 2mm;
-      display: grid;
+      padding: var(--pad);
+      display:grid;
       grid-template-columns: 1fr auto;
-      gap: 2mm;
-      align-items: center;
-      border-bottom: 1px dashed #9ca3af;
+      gap: var(--gap);
+      align-items:center;
+      page-break-after: always;
     }
 
     .name{
-      font-size: ${fontSize}px;
+      font-size: var(--font);
       font-weight: 800;
       line-height: 1.1;
-      word-break: break-word;
+      max-height: 2.4em;
+      overflow: hidden;
     }
     .price{
-      margin-top: 1mm;
-      font-size: ${Math.max(fontSize+2, fontSize)}px;
+      font-size: calc(var(--font) + 4px);
       font-weight: 900;
+      margin-top: 2mm;
     }
-
-    img{
-      width: ${qrSize}px;
-      height: ${qrSize}px;
-      display:block;
-    }
+    img{ width: var(--qr); height: var(--qr); display:block; }
 
     @media print{
       .toolbar,.help{ display:none; }
-      .sheet{ padding: 0; }
-      .label{ border-bottom: 0; }
+      .label{ page-break-after: always; }
     }
+
   </style>
 </head>
 <body>
