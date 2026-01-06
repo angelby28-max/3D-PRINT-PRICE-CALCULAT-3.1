@@ -2221,7 +2221,9 @@ window.__labelQty = (id, v) => {
   const n = parseInt(v, 10);
   const s = getLabelSel(id);
   s.qty = Number.isFinite(n) && n > 0 ? n : 1;
+  saveLabelSelection(); // ✅ persist immediately
 };
+
 // ✅ Clear label selection (checkboxes + qty)
 function clearLabelSelection(){
   for (const k in LABEL_SEL) delete LABEL_SEL[k];
