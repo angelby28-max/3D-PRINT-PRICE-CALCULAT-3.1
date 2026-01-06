@@ -2267,6 +2267,9 @@ function makeQRDataURL(text, sizePx){
 function printSelectedLabels(){
   const inv = loadInv();
 
+  // ✅ Save current label selection before entering print flow
+  saveLabelSelection();
+
   // UI settings
   const preset = ($("labelPreset")?.value || "58").trim(); // "58" or "80"
   const printerType = ($("labelPrinterType")?.value || "thermal").trim(); // "thermal" or "sheet"
