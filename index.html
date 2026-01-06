@@ -2976,12 +2976,14 @@ function wireCustomUI(){
       wireCustomUI();
 
 // ✅ When iPhone PWA returns (Back), Safari may reload — restore draft state
-window.addEventListener("pageshow", () => {
-  restoreDraftFromSession(); // ✅ restore calculator/job draft
-  restoreLabelSelection();   // ✅ restore checkboxes + qty
-  renderInventory();         // ✅ redraw inventory UI with restored selection
+window.addEventListener("pageshow", (e) => {
+  // ✅ Only restore when Safari returns from Back/Cache (BFCache)
+  if (e && e.persisted) {
+    restoreDraftFromSession(); // restore previous tab + calculator + QR state
+    restoreLabelSelection();
+    renderInventory(); // redraw inventory if needed
+  }
 });
-
 
       // Tabs
       $("tabBtnCalc")?.addEventListener("click", () => showTab("calc"));
@@ -3192,8 +3194,7 @@ if ($("qrHint") && !$("qrPreview")?.innerHTML.trim()){
 }
 
     init();
-  restoreDraftFromSession();
-
+  
     // ✅ If coming back from Print page, reset QR UI so buttons behave normally
 if (sessionStorage.getItem("qrJustReturnedFromPrint") === "1") {
   sessionStorage.removeItem("qrJustReturnedFromPrint");
