@@ -2230,13 +2230,14 @@ function makeQRDataURL(text, sizePx){
   return dataUrl;
 }
 
-// ✅ Multi-print selected inventory labels (58/80mm)
+// ✅ Multi-print selected inventory labels (Thermal 58/80mm OR Sheet Letter/A4)
 function printSelectedLabels(){
   const inv = loadInv();
 
   // UI settings
   const preset = ($("labelPreset")?.value || "58").trim(); // "58" or "80"
-  const qrSize = parseInt($("labelQRSize")?.value || "180", 10);
+  const printerType = ($("labelPrinterType")?.value || "thermal").trim(); // "thermal" or "sheet"
+  const qrSizeSlider = parseInt($("labelQRSize")?.value || "180", 10); // user slider value
   const fontSize = parseInt($("labelFontSize")?.value || "13", 10);
   const showPrice = $("labelShowPrice")?.checked ?? true;
 
@@ -2262,65 +2263,80 @@ function printSelectedLabels(){
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#39;");
 
-  // Build label HTML blocks (repeat per item copies)
+  // Build labels list (repeat per copies)
   const labels = [];
   for (const row of selected){
     const name = row.item.name || "";
     const price = Number(row.item.pricePerUnit || 0);
     const url = buildQRUrlForItem(name, price);
-    const qrDataUrl = makeQRDataURL(url, qrSize);
 
     for (let i=0; i<row.copies; i++){
-      labels.push({ name, price, qrDataUrl });
+      labels.push({ name, price, url });
     }
   }
 
-  // Thermal widths (CSS uses mm)
-  const pageW = (preset === "80") ? "80mm" : "58mm";
+  // Save return URL
+  sessionStorage.setItem("qrPrintReturnURL", window.location.href);
 
   const lang = currentLang();
   const btnPrint = (lang === "es") ? "Imprimir" : "Print";
   const btnBack  = (lang === "es") ? "Volver" : "Back";
   const helpTxt  = (lang === "es")
-    ? "Consejo: En iPhone/PWA, si no aparece imprimir, usa Compartir → Imprimir o abre en Safari."
-    : "Tip: On iPhone/PWA, if print doesn’t appear, use Share → Print or open in Safari.";
+    ? "Tip: si no aparece imprimir, usa Compartir → Imprimir o abre en Safari."
+    : "Tip: if print doesn’t appear, use Share → Print or open in Safari.";
 
-  const labelsHTML = labels.map(l => {
-    const priceText = Number.isFinite(l.price) ? l.price.toFixed(2) : "0.00";
-    return `
-      <div class="label">
-        <div class="txt">
-          <div class="name">${esc(l.name)}</div>
-          ${showPrice ? `<div class="price">$${esc(priceText)}</div>` : ``}
+  // -----------------------------
+  // THERMAL MODE (58 / 80mm)
+  // -----------------------------
+  if (printerType === "thermal"){
+    const pageWmm = (preset === "80") ? 80 : 58;
+
+    // Thermal printers are commonly 203 DPI. This makes px->mm predictable.
+    const dpi = 203;
+
+    // Convert slider value to a physical QR size (mm) using the printer DPI.
+    // Example: 180px at 203dpi ≈ 22.5mm
+    const qrMm = Math.max(16, Math.min(45, (qrSizeSlider * 25.4) / dpi));
+
+    // Compute a stable label height (mm). Must be explicit (no "auto") for phone PDF.
+    // Give room for text + padding.
+    const padMm = 2;
+    const gapMm = 2;
+    const minHmm = (pageWmm === 58) ? 34 : 38;
+    const labelHmm = Math.max(minHmm, Math.ceil(qrMm + 14));
+
+    // Generate QR images at a good pixel size so it stays crisp when printed
+    // (generate slightly larger than needed).
+    const qrPx = Math.max(140, Math.round((qrMm * dpi) / 25.4));
+
+    const labelsHTML = labels.map(l => {
+      const priceText = Number.isFinite(l.price) ? l.price.toFixed(2) : "0.00";
+      const qrDataUrl = makeQRDataURL(l.url, qrPx);
+
+      return `
+        <div class="label">
+          <div class="txt">
+            <div class="name">${esc(l.name)}</div>
+            ${showPrice ? `<div class="price">$${esc(priceText)}</div>` : ``}
+          </div>
+          <img src="${qrDataUrl}" alt="QR">
         </div>
-        <img src="${l.qrDataUrl}" alt="QR">
-      </div>
-    `;
-  }).join("");
+      `;
+    }).join("");
 
-  // Save return URL (like your printQR)
-  sessionStorage.setItem("qrPrintReturnURL", window.location.href);
-
-  const html = `<!doctype html>
+    const html = `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Print Labels</title>
   <style>
-    @page { size: ${pageW} auto; margin: 0; }
-       html,body{ height:100%; margin:0; padding:0; }
+    /* ✅ Explicit W + H = reliable thermal PDF on phones */
+    @page { size: ${pageWmm}mm ${labelHmm}mm; margin: 0; }
+
+    html,body{ margin:0; padding:0; }
     body{ font-family: Arial, sans-serif; }
 
-    :root{
-      --pad: 2mm;
-      --gap: 2mm;
-      --qr: ${qrSize}px;
-      --font: ${fontSize}px;
-
-    }
-
-    /* On screen toolbar */
     .toolbar{
       padding:10px;
       display:flex;
@@ -2345,37 +2361,42 @@ function printSelectedLabels(){
       padding:8px 12px;
     }
 
-    /* ✅ Thermal roll: one label per page */
+    /* One label per printed page */
     .label{
-      width: ${pageW};
+      width: ${pageWmm}mm;
+      height: ${labelHmm}mm;
       box-sizing: border-box;
-      padding: var(--pad);
+      padding: ${padMm}mm;
       display:grid;
       grid-template-columns: 1fr auto;
-      gap: var(--gap);
+      gap: ${gapMm}mm;
       align-items:center;
       page-break-after: always;
     }
 
     .name{
-      font-size: var(--font);
+      font-size: ${fontSize}px;
       font-weight: 800;
       line-height: 1.1;
       max-height: 2.4em;
       overflow: hidden;
     }
     .price{
-      font-size: calc(var(--font) + 4px);
+      font-size: ${fontSize + 4}px;
       font-weight: 900;
       margin-top: 2mm;
     }
-    img{ width: var(--qr); height: var(--qr); display:block; }
+
+    /* ✅ Use mm so QR stays a real physical size */
+    img{
+      width: ${qrMm.toFixed(1)}mm;
+      height:${qrMm.toFixed(1)}mm;
+      display:block;
+    }
 
     @media print{
       .toolbar,.help{ display:none; }
-      .label{ page-break-after: always; }
     }
-
   </style>
 </head>
 <body>
@@ -2385,7 +2406,109 @@ function printSelectedLabels(){
   </div>
   <div class="help">${esc(helpTxt)}</div>
 
-  <div class="sheet">
+  ${labelsHTML}
+
+  <script>
+    window.__goBackToApp = () => {
+      const returnURL = sessionStorage.getItem("qrPrintReturnURL") || "./";
+      window.location.href = returnURL;
+    };
+    window.onload = () => {
+      setTimeout(() => { try{ window.print(); }catch(e){} }, 300);
+    };
+  </scr` + `ipt>
+</body>
+</html>`;
+
+    document.open();
+    document.write(html);
+    document.close();
+    return;
+  }
+
+  // -----------------------------
+  // SHEET MODE (Letter/A4)
+  // -----------------------------
+  // Simple grid on Letter. (You can expand later for A4 auto-detect.)
+  const cols = (preset === "80") ? 2 : 3; // just a helpful default
+  const qrPx = Math.max(160, qrSizeSlider);
+
+  const labelsHTML = labels.map(l => {
+    const priceText = Number.isFinite(l.price) ? l.price.toFixed(2) : "0.00";
+    const qrDataUrl = makeQRDataURL(l.url, qrPx);
+    return `
+      <div class="cell">
+        <img src="${qrDataUrl}" alt="QR">
+        <div class="name">${esc(l.name)}</div>
+        ${showPrice ? `<div class="price">$${esc(priceText)}</div>` : ``}
+      </div>
+    `;
+  }).join("");
+
+  const html = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Print Labels (Sheet)</title>
+  <style>
+    @page { size: letter; margin: 0.5in; }
+    body{ margin:0; font-family: Arial, sans-serif; }
+
+    .toolbar{
+      padding:10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      background:#f3f4f6;
+      border-bottom:1px solid #e5e7eb;
+    }
+    .toolbar button{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #111827;
+      background:#ffffff;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .grid{
+      padding: 16px;
+      display:grid;
+      grid-template-columns: repeat(${cols}, 1fr);
+      gap: 14px;
+    }
+
+    .cell{
+      border: 1px dashed #9ca3af;
+      border-radius: 10px;
+      padding: 10px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 6px;
+      break-inside: avoid;
+    }
+
+    img{ width:${qrPx}px; height:${qrPx}px; }
+    .name{ font-size:${fontSize}px; font-weight:800; text-align:center; }
+    .price{ font-size:${fontSize + 4}px; font-weight:900; }
+
+    @media print{
+      .toolbar{ display:none; }
+      .grid{ padding:0; }
+      .cell{ border:0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button onclick="window.print()">${esc(btnPrint)}</button>
+    <button onclick="window.__goBackToApp()">${esc(btnBack)}</button>
+  </div>
+
+  <div class="grid">
     ${labelsHTML}
   </div>
 
@@ -2405,6 +2528,7 @@ function printSelectedLabels(){
   document.write(html);
   document.close();
 }
+
 
     function loadInv(){
       const inv = loadJSON(LS_INV_KEY, []);
