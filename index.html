@@ -2213,7 +2213,9 @@ function getLabelSel(id){
 window.__labelToggle = (id, on) => {
   const s = getLabelSel(id);
   s.selected = !!on;
+  saveLabelSelection(); // ✅ persist immediately
 };
+
 
 window.__labelQty = (id, v) => {
   const n = parseInt(v, 10);
