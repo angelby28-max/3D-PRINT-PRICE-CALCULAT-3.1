@@ -893,6 +893,11 @@ sessionStorage.setItem("qrPrintReturnURL", window.location.href);
     .name{ font-size: 11pt; font-weight: 700; line-height: 1.05; max-height: 2.2em; overflow: hidden; }
     .price{ font-size: 14pt; font-weight: 900; margin-top: 0.04in; }
     img{ width: var(--qr); height: var(--qr); display:block; }
+    
+    /* ✅ When saving as PDF on phone, hide UI so label fits perfectly */
+@media screen{
+  .toolbar,.help{ display:none; }
+}
     @media print{
       .toolbar,.help{ display:none; }
       .labelWrap{ padding:0; }
@@ -2286,28 +2291,36 @@ function printSelectedLabels(){
     : "Tip: if print doesn’t appear, use Share → Print or open in Safari.";
 
   // -----------------------------
-  // THERMAL MODE (58 / 80mm)
+  // THERMAL MODE (58 / 80mm) ✅ FIXED PDF SIZE
   // -----------------------------
   if (printerType === "thermal"){
     const pageWmm = (preset === "80") ? 80 : 58;
 
-    // Thermal printers are commonly 203 DPI. This makes px->mm predictable.
-    const dpi = 203;
+    // ✅ Choose a stable sticker height (mm)
+    // You said you don't know: we'll use safe defaults:
+    // 58mm roll -> 40mm tall label
+    // 80mm roll -> 45mm tall label
+    const labelHmm = (pageWmm === 80) ? 45 : 40;
 
-    // Convert slider value to a physical QR size (mm) using the printer DPI.
-    // Example: 180px at 203dpi ≈ 22.5mm
-    const qrMm = Math.max(16, Math.min(45, (qrSizeSlider * 25.4) / dpi));
-
-    // Compute a stable label height (mm). Must be explicit (no "auto") for phone PDF.
-    // Give room for text + padding.
+    // Padding + gap in mm
     const padMm = 2;
     const gapMm = 2;
-    const minHmm = (pageWmm === 58) ? 34 : 38;
-    const labelHmm = Math.max(minHmm, Math.ceil(qrMm + 14));
 
-    // Generate QR images at a good pixel size so it stays crisp when printed
-    // (generate slightly larger than needed).
-    const qrPx = Math.max(140, Math.round((qrMm * dpi) / 25.4));
+    // ✅ Physical QR size (mm)
+    // Use slider (120-260) but map it into a sane QR physical size range
+    // 18mm to 34mm works great on most 58/80 labels
+    const qrMm = (() => {
+      const min = 18;
+      const max = (pageWmm === 80) ? 36 : 34;
+      // map slider 120..260 -> min..max
+      const t = Math.max(0, Math.min(1, (qrSizeSlider - 120) / (260 - 120)));
+      return (min + (max - min) * t);
+    })();
+
+    // ✅ Generate QR bitmap big enough to stay sharp
+    // 300dpi makes clean QR in PDFs
+    const dpi = 300;
+    const qrPx = Math.max(200, Math.round((qrMm * dpi) / 25.4));
 
     const labelsHTML = labels.map(l => {
       const priceText = Number.isFinite(l.price) ? l.price.toFixed(2) : "0.00";
@@ -2331,7 +2344,7 @@ function printSelectedLabels(){
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Print Labels</title>
   <style>
-    /* ✅ Explicit W + H = reliable thermal PDF on phones */
+    /* ✅ CRITICAL: explicit width + height so phone PDF is NOT Letter/A4 */
     @page { size: ${pageWmm}mm ${labelHmm}mm; margin: 0; }
 
     html,body{ margin:0; padding:0; }
@@ -2361,7 +2374,7 @@ function printSelectedLabels(){
       padding:8px 12px;
     }
 
-    /* One label per printed page */
+    /* ✅ One label per page, exact size */
     .label{
       width: ${pageWmm}mm;
       height: ${labelHmm}mm;
@@ -2372,14 +2385,15 @@ function printSelectedLabels(){
       gap: ${gapMm}mm;
       align-items:center;
       page-break-after: always;
+      overflow:hidden;
     }
 
     .name{
       font-size: ${fontSize}px;
       font-weight: 800;
-      line-height: 1.1;
-      max-height: 2.4em;
-      overflow: hidden;
+      line-height: 1.05;
+      max-height: 2.3em;
+      overflow:hidden;
     }
     .price{
       font-size: ${fontSize + 4}px;
@@ -2387,7 +2401,7 @@ function printSelectedLabels(){
       margin-top: 2mm;
     }
 
-    /* ✅ Use mm so QR stays a real physical size */
+    /* ✅ Physical QR size in mm (NOT px) */
     img{
       width: ${qrMm.toFixed(1)}mm;
       height:${qrMm.toFixed(1)}mm;
@@ -2425,6 +2439,8 @@ function printSelectedLabels(){
     document.close();
     return;
   }
+
+ 
 
   // -----------------------------
   // SHEET MODE (Letter/A4)
