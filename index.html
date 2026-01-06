@@ -2269,6 +2269,7 @@ function printSelectedLabels(){
 
   // ✅ Save current label selection before entering print flow
   saveLabelSelection();
+  saveDraftToSession(); // ✅ remembers active tab (Inventory) + state for Back/Cancel
 
   // UI settings
   const preset = ($("labelPreset")?.value || "58").trim(); // "58" or "80"
