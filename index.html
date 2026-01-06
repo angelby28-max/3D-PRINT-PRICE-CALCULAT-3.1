@@ -2176,6 +2176,34 @@ if ($("autoLoadDefaults")) $("autoLoadDefaults").checked = false;
     // ---------- Inventory ----------
    // ✅ Label print selection state (temporary; resets on refresh)
 const LABEL_SEL = {}; // { [invId]: { selected: boolean, qty: number } }
+// ✅ Persist label selection across print cancel/back (sessionStorage)
+const SS_LABEL_KEY = "label_selection_v1";
+
+function saveLabelSelection(){
+  try{
+    sessionStorage.setItem(SS_LABEL_KEY, JSON.stringify(LABEL_SEL));
+  }catch(e){}
+}
+
+function restoreLabelSelection(){
+  try{
+    const raw = sessionStorage.getItem(SS_LABEL_KEY);
+    if (!raw) return;
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== "object") return;
+
+    // Replace current selection state
+    for (const k in LABEL_SEL) delete LABEL_SEL[k];
+    for (const k in obj){
+      const v = obj[k];
+      if (!v) continue;
+      LABEL_SEL[k] = {
+        selected: !!v.selected,
+        qty: Math.max(1, parseInt(v.qty || 1, 10) || 1)
+      };
+    }
+  }catch(e){}
+}
 
 function getLabelSel(id){
   if (!LABEL_SEL[id]) LABEL_SEL[id] = { selected:false, qty: 1 };
