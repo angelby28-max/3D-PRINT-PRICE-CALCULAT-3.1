@@ -2976,7 +2976,12 @@ function wireCustomUI(){
       wireCustomUI();
 
 // ✅ When iPhone PWA returns (Back), Safari may reload — restore draft state
-window.addEventListener("pageshow", () => restoreDraftFromSession());
+window.addEventListener("pageshow", () => {
+  restoreDraftFromSession(); // ✅ restore calculator/job draft
+  restoreLabelSelection();   // ✅ restore checkboxes + qty
+  renderInventory();         // ✅ redraw inventory UI with restored selection
+});
+
 
       // Tabs
       $("tabBtnCalc")?.addEventListener("click", () => showTab("calc"));
